@@ -230,19 +230,18 @@
         {{-- ============ TABS ============ --}}
         <div class="sf-tabs sf-card-surface">
             <div class="sf-tabs__nav" style="padding:0 16px">
+                @php
+                    $videoType = $details->pro_video_type ?? ($details->pro_video ? 'youtube' : null);
+                    $hasVideo = ($videoType === 'youtube' && $details->pro_video) || ($videoType === 'upload' && $details->pro_video_path);
+                @endphp
                 <button type="button" class="active" data-tab="pdDescription">Description</button>
-                <button type="button" data-tab="pdVideo" @if(empty($videoType)) style="display:none" @endif>Video</button>
+                <button type="button" data-tab="pdVideo" @if(empty($hasVideo)) style="display:none" @endif>Video</button>
                 <button type="button" data-tab="pdReviews">Reviews ({{ $reviews->count() }})</button>
             </div>
 
             <div class="sf-tabs__pane active" id="pdDescription">
                 <div class="sf-prose">{!! $details->description !!}</div>
             </div>
-
-            @php
-                $videoType = $details->pro_video_type ?? ($details->pro_video ? 'youtube' : null);
-                $hasVideo = ($videoType === 'youtube' && $details->pro_video) || ($videoType === 'upload' && $details->pro_video_path);
-            @endphp
             <div class="sf-tabs__pane" id="pdVideo">
                 @if($hasVideo)
                     @if($videoType === 'youtube' && $details->pro_video)

@@ -234,10 +234,8 @@ $brands = Brand::where('status', 1)
         
         // ১. ডাটাবেস থেকে সেটিং লোড করা
         $setting = GeneralSetting::select('order_limit_time', 'order_limit_qty')->first();
-        
-        // যদি সেটিং না পায় বা ভ্যালু না থাকে, তবে ডিফল্ট হিসেবে ৪৮ ঘন্টা এবং ২ বার ধরবে
-        $limitHours = $setting->order_limit_time ?? 48; 
-        $limitQty   = $setting->order_limit_qty ?? 2;
+        $limitHours = optional($setting)->order_limit_time ?? 48;
+        $limitQty   = optional($setting)->order_limit_qty ?? 2;
 
         $productId = $request->id;
         // ডাইনামিক সময় ক্যালকুলেশন
@@ -692,7 +690,7 @@ $brands = Brand::where('status', 1)
     public function category($slug, Request $request)
     {
         $soldShow = $request->sold=='show'?true:false;
-        $category = Category::where(['slug' => $slug, 'status' => 1])->first();
+        $category = Category::where(['slug' => $slug, 'status' => 1])->firstOrFail();
 
         $products = Product::where(['status' => 1, 'approval_status' => 'approved', 'category_id' => $category->id])
             ->select('id', 'name', 'slug', 'new_price', 'old_price', 'category_id','sold','stock')
@@ -736,7 +734,7 @@ $brands = Brand::where('status', 1)
     public function subcategory($slug, Request $request)
     {
         $soldShow = $request->sold=='show'?true:false;
-        $subcategory = Subcategory::where(['slug' => $slug, 'status' => 1])->first();
+        $subcategory = Subcategory::where(['slug' => $slug, 'status' => 1])->firstOrFail();
         $products = Product::where(['status' => 1, 'approval_status' => 'approved', 'subcategory_id' => $subcategory->id])
             ->select('id', 'name', 'slug', 'new_price', 'old_price', 'category_id', 'subcategory_id','sold','stock')
             ->with(['image', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size']);
@@ -785,7 +783,7 @@ $brands = Brand::where('status', 1)
     public function products($slug, Request $request)
     {
         $soldShow = $request->sold=='show'?true:false;
-        $childcategory = Childcategory::where(['slug' => $slug, 'status' => 1])->first();
+        $childcategory = Childcategory::where(['slug' => $slug, 'status' => 1])->firstOrFail();
         $childcategories = Childcategory::where('subcategory_id', $childcategory->subcategory_id)->get();
         $products = Product::where(['status' => 1, 'approval_status' => 'approved', 'childcategory_id' => $childcategory->id])
             ->with(['category', 'image', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size'])
