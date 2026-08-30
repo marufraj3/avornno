@@ -352,8 +352,6 @@ Route::group(['namespace'=>'Frontend', 'middleware' => ['ipcheck','check_refer']
     Route::get('subcategory/{subcategory}', [FrontendController::class, 'subcategory'])->name('subcategory');
 
     Route::get('products/{slug}', [FrontendController::class, 'products'])->name('products');
-    Route::get('wholesale-products', [FrontendController::class, 'wholesaleProducts'])->name('wholesale.products');
-
     Route::get('hot-deals', [FrontendController::class, 'hotdeals'])->name('hotdeals');
     Route::get('flash-sales', [FrontendController::class, 'flashsales'])->name('flashsales');
     Route::get('shop', [FrontendController::class, 'shop'])->name('shop');
@@ -824,7 +822,6 @@ Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('admin.
    
     // product
     Route::get('products/manage', [ProductController::class,'index'])->name('products.index');
-    Route::get('products/wholesale', [ProductController::class,'wholesale'])->name('admin.products.wholesale');
     Route::get('products/{id}/show', [ProductController::class,'show'])->name('products.show');
     Route::get('products/create', [ProductController::class,'create'])->name('products.create');
     
@@ -832,18 +829,6 @@ Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('admin.
     Route::get('inhouse-products/manage', [App\Http\Controllers\Admin\InhouseProductController::class,'index'])->name('inhouse.products.index');
     Route::get('inhouse-products/{id}/show', [App\Http\Controllers\Admin\InhouseProductController::class,'show'])->name('inhouse.products.show');
     
-    // Wholesale Products
-    Route::get('wholesale-products', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'index'])->name('admin.wholesale_products.index');
-    Route::get('wholesale-products/create', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'create'])->name('admin.wholesale_products.create');
-    Route::post('wholesale-products', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'store'])->name('admin.wholesale_products.store');
-    Route::get('wholesale-products/{id}', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'show'])->name('admin.wholesale_products.show');
-    Route::get('wholesale-products/{id}/edit', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'edit'])->name('admin.wholesale_products.edit');
-    Route::post('wholesale-products/{id}', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'update'])->name('admin.wholesale_products.update');
-    Route::delete('wholesale-products/{id}', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'destroy'])->name('admin.wholesale_products.destroy');
-    Route::post('wholesale-products/{id}/approve', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'approve'])->name('admin.wholesale_products.approve');
-    Route::post('wholesale-products/{id}/reject', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'reject'])->name('admin.wholesale_products.reject');
-    Route::get('ajax-wholesale-subcategory', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'getSubcategory'])->name('admin.ajax.wholesale.subcategory');
-    Route::get('ajax-wholesale-childcategory', [\App\Http\Controllers\Admin\WholesaleProductController::class, 'getChildcategory'])->name('admin.ajax.wholesale.childcategory');
     Route::post('products/save', [ProductController::class,'store'])->name('products.store');
     Route::post('products/{id}/duplicate', [ProductController::class,'duplicate'])->name('products.duplicate');
     Route::get('products/{id}/edit', [ProductController::class,'edit'])->name('products.edit');

@@ -80,30 +80,23 @@ class LoginController extends Controller
      */
     public function __construct()
     {
-        // Allow access to login page if not authenticated OR if current user is vendor/reseller (so admin can login)
         $this->middleware(function ($request, $next) {
             if (Auth::guard('admin')->check()) {
                 $user = Auth::guard('admin')->user();
-                
-                // ✅ Super Admin (id=1) or Admin role - redirect to dashboard
+
                 if ($user->id == 1 || $user->hasRole('Admin') || $user->hasRole('admin')) {
                     return redirect()->route('admin.dashboard');
                 }
-                
-                // Retired vendor/reseller sessions are logged out; their dashboards no longer exist.
-                if ($user->hasRole('reseller') || $user->hasRole('vendor') || $user->role === 'reseller' || $user->role === 'vendor') {
+
+                if ($user->hasRole('reseller') || $user->hasRole('vendor') || in_array(strtolower((string) $user->role), ['reseller', 'vendor'])) {
                     Auth::guard('admin')->logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
                     return $next($request);
                 }
-                
-                // ✅ If user has any other Spatie role (Staff, Salesman, etc.), redirect to dashboard
-                $spatieRoles = $user->getRoleNames()->map(function($role) {
-                    return strtolower($role);
-                })->toArray();
-                
-                if (count($spatieRoles) > 0 && !in_array('vendor', $spatieRoles) && !in_array('reseller', $spatieRoles)) {
+
+                $spatieRoles = $user->getRoleNames()->map(fn ($role) => strtolower($role))->toArray();
+                if (count($spatieRoles) > 0) {
                     return redirect()->route('admin.dashboard');
                 }
             }
@@ -116,10 +109,9 @@ class LoginController extends Controller
      */
     protected function attemptLogin(\Illuminate\Http\Request $request)
     {
-        // If vendor or reseller is logged in, logout first to allow admin login
         if (Auth::guard('admin')->check()) {
             $user = Auth::guard('admin')->user();
-            if ($user->hasRole('vendor') || $user->hasRole('reseller') || $user->role === 'reseller') {
+            if ($user->hasRole('vendor') || $user->hasRole('reseller') || in_array(strtolower((string) $user->role), ['vendor', 'reseller'])) {
                 Auth::guard('admin')->logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
@@ -201,10 +193,9 @@ class LoginController extends Controller
      */
     public function showLoginForm()
     {
-        // If vendor or reseller is logged in, logout first to allow admin login
         if (Auth::guard('admin')->check()) {
             $user = Auth::guard('admin')->user();
-            if ($user->hasRole('vendor') || $user->hasRole('reseller') || $user->role === 'reseller') {
+            if ($user->hasRole('vendor') || $user->hasRole('reseller') || in_array(strtolower((string) $user->role), ['vendor', 'reseller'])) {
                 Auth::guard('admin')->logout();
                 request()->session()->invalidate();
                 request()->session()->regenerateToken();

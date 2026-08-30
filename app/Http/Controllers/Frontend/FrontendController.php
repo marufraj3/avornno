@@ -51,19 +51,6 @@ class FrontendController extends Controller
     
    
 
-    protected function sendUnauthorizedReport($domain, $reason)
-    {
-        try {
-            \Illuminate\Support\Facades\Http::timeout(4)->post('https://www.creativedesign.com.bd/api/log-unauthorized', [
-                'domain' => $domain,
-                'ip'     => request()->ip(),
-                'reason' => $reason,
-                'url'    => request()->fullUrl(),
-                'time'   => now()->toDateTimeString()
-            ]);
-        } catch (\Exception $e) {}
-    }
-    
     public function index()
     {
         // ✅ Homepage cache (5 min) - reduces DB load on high traffic
@@ -247,10 +234,8 @@ $brands = Brand::where('status', 1)
         
         // ১. ডাটাবেস থেকে সেটিং লোড করা
         $setting = GeneralSetting::select('order_limit_time', 'order_limit_qty')->first();
-        
-        // যদি সেটিং না পায় বা ভ্যালু না থাকে, তবে ডিফল্ট হিসেবে ৪৮ ঘন্টা এবং ২ বার ধরবে
-        $limitHours = $setting->order_limit_time ?? 48; 
-        $limitQty   = $setting->order_limit_qty ?? 2;
+        $limitHours = optional($setting)->order_limit_time ?? 48;
+        $limitQty   = optional($setting)->order_limit_qty ?? 2;
 
         $productId = $request->id;
         // ডাইনামিক সময় ক্যালকুলেশন
@@ -389,6 +374,9 @@ $brands = Brand::where('status', 1)
                 'image'            => $product->image->image ?? null,
                 'slug'             => $product->slug,
                 'purchase_price'   => $product->purchase_price ?? null,
+                'advance_amount'   => (float) ($product->advance_amount ?? 0),
+                'is_digital'       => (int) ($product->is_digital ?? 0),
+                'free_delivery'    => (int) ($product->free_delivery ?? 0),
             ],
         ]);
 
@@ -705,7 +693,7 @@ $brands = Brand::where('status', 1)
     public function category($slug, Request $request)
     {
         $soldShow = $request->sold=='show'?true:false;
-        $category = Category::where(['slug' => $slug, 'status' => 1])->first();
+        $category = Category::where(['slug' => $slug, 'status' => 1])->firstOrFail();
 
         $products = Product::where(['status' => 1, 'approval_status' => 'approved', 'category_id' => $category->id])
             ->select('id', 'name', 'slug', 'new_price', 'old_price', 'category_id','sold','stock')
@@ -749,7 +737,7 @@ $brands = Brand::where('status', 1)
     public function subcategory($slug, Request $request)
     {
         $soldShow = $request->sold=='show'?true:false;
-        $subcategory = Subcategory::where(['slug' => $slug, 'status' => 1])->first();
+        $subcategory = Subcategory::where(['slug' => $slug, 'status' => 1])->firstOrFail();
         $products = Product::where(['status' => 1, 'approval_status' => 'approved', 'subcategory_id' => $subcategory->id])
             ->select('id', 'name', 'slug', 'new_price', 'old_price', 'category_id', 'subcategory_id','sold','stock')
             ->with(['image', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size']);
@@ -798,7 +786,7 @@ $brands = Brand::where('status', 1)
     public function products($slug, Request $request)
     {
         $soldShow = $request->sold=='show'?true:false;
-        $childcategory = Childcategory::where(['slug' => $slug, 'status' => 1])->first();
+        $childcategory = Childcategory::where(['slug' => $slug, 'status' => 1])->firstOrFail();
         $childcategories = Childcategory::where('subcategory_id', $childcategory->subcategory_id)->get();
         $products = Product::where(['status' => 1, 'approval_status' => 'approved', 'childcategory_id' => $childcategory->id])
             ->with(['category', 'image', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size'])
@@ -851,19 +839,57 @@ $brands = Brand::where('status', 1)
                     'brand',
                     'variantPrices.color',
                     'variantPrices.size',
-                    'wholesalePrices'
                 ])
                 ->firstOrFail();
         });
 
-        // Related products: limit 12, exclude current, eager load to avoid N+1
-        $products = Product::where('category_id', $details->category_id)
+        $relatedWith = ['image', 'category', 'brand', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size'];
+        $relatedSelect = ['id', 'name', 'slug', 'new_price', 'old_price', 'stock', 'category_id', 'subcategory_id', 'brand_id', 'pro_unit'];
+        $relatedBase = Product::query()
             ->where('id', '!=', $details->id)
-            ->where(['status' => 1, 'approval_status' => 'approved'])
-            ->with(['image', 'category', 'brand', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size'])
-            ->select('id', 'name', 'slug', 'new_price', 'old_price', 'stock', 'category_id', 'brand_id', 'pro_unit')
+            ->where('status', 1)
+            ->where('approval_status', 'approved')
+            ->with($relatedWith)
+            ->select($relatedSelect);
+
+        $products = (clone $relatedBase)
+            ->when($details->category_id, fn ($q) => $q->where('category_id', $details->category_id))
+            ->latest('id')
             ->limit(12)
-            ->get();
+            ->get()
+            ->unique('id')
+            ->values();
+
+        if ($products->count() < 8 && $details->subcategory_id) {
+            $extra = (clone $relatedBase)
+                ->where('subcategory_id', $details->subcategory_id)
+                ->whereNotIn('id', $products->pluck('id')->push($details->id))
+                ->latest('id')
+                ->limit(12)
+                ->get();
+            $products = $products->concat($extra)->unique('id')->values();
+        }
+
+        if ($products->count() < 8 && $details->brand_id) {
+            $extra = (clone $relatedBase)
+                ->where('brand_id', $details->brand_id)
+                ->whereNotIn('id', $products->pluck('id')->push($details->id))
+                ->latest('id')
+                ->limit(12)
+                ->get();
+            $products = $products->concat($extra)->unique('id')->values();
+        }
+
+        if ($products->count() < 8) {
+            $extra = (clone $relatedBase)
+                ->whereNotIn('id', $products->pluck('id')->push($details->id))
+                ->latest('id')
+                ->limit(12)
+                ->get();
+            $products = $products->concat($extra)->unique('id')->values();
+        }
+
+        $products = $products->take(12)->values();
 
         $shippingcharge = Cache::remember('shipping_charges_active', 300, fn() => ShippingCharge::where('status', 1)->get());
         $reviews = Review::where('product_id', $details->id)
@@ -917,11 +943,9 @@ $brands = Brand::where('status', 1)
         // ভ্যারিয়েন্ট স্টক থাকলে সব সাইজ/কালারের মোট স্টকই আসল স্টক
         $variantRows = $p->variantPrices ?? collect();
         $hasVariantStock = $variantRows->contains(fn ($v) => $v->stock !== null);
-        $displayStock = !empty($p->is_wholesale)
-            ? 99999
-            : ($hasVariantStock
+        $displayStock = $hasVariantStock
                 ? (int) $variantRows->sum(fn ($v) => max(0, (int) $v->stock))
-                : (int) ($p->stock ?? 0));
+                : (int) ($p->stock ?? 0);
 
         $sizes = []; $colors = []; $variants = [];
 
@@ -1173,7 +1197,6 @@ $brands = Brand::where('status', 1)
                 'colors',
                 'variantPrices.size',
                 'variantPrices.color',
-                'wholesalePrices',
             ])
             ->when($campaign_data->product_id, function ($query, $primaryProductId) {
                 $query->orderByRaw('CASE WHEN products.id = ? THEN 0 ELSE 1 END', [$primaryProductId]);
@@ -1251,14 +1274,29 @@ $brands = Brand::where('status', 1)
         );
 
         $viewData['landing'] = $campaign_data->landingContent();
-        $viewData['pageType'] = 'premium';
         $viewData['lpEditor'] = false;
-        $viewData['renderPageHtml'] = view(
-            'frontEnd.layouts.pages.campaign.partials.premium-template',
-            $viewData
-        )->render();
-        $viewData['renderPageCss'] = null;
-        $viewData['renderPageJs'] = null;
+
+        // Admin visual builder (page_html/page_css) is the live storefront when present.
+        // Custom HTML/CSS/JS is next. Only fall back to the premium Blade template
+        // when neither published design exists — otherwise admin canvas ≠ frontend.
+        if ($campaign_data->hasVisualPage()) {
+            $viewData['pageType'] = 'visual';
+            // Leave renderPageHtml unset so the Blade view uses page_html + page_css
+            // (same snapshot the admin visual builder saved) and replaces tokens.
+        } elseif ($campaign_data->isCustomPageLive()) {
+            $viewData['pageType'] = 'custom';
+            $viewData['renderPageHtml'] = $campaign_data->custom_html;
+            $viewData['renderPageCss'] = $campaign_data->custom_css;
+            $viewData['renderPageJs'] = $campaign_data->custom_js;
+        } else {
+            $viewData['pageType'] = 'premium';
+            $viewData['renderPageHtml'] = view(
+                'frontEnd.layouts.pages.campaign.partials.premium-template',
+                $viewData
+            )->render();
+            $viewData['renderPageCss'] = null;
+            $viewData['renderPageJs'] = null;
+        }
 
         return view('frontEnd.layouts.pages.campaign.campaign-builder', $viewData);
     }
@@ -1345,48 +1383,4 @@ $brands = Brand::where('status', 1)
         return null;
     }
 
-    // Wholesale Products Page
-    public function wholesaleProducts(Request $request)
-    {
-        $query = Product::where('status', 1)
-            ->where('approval_status', 'approved')
-            ->where('is_wholesale', 1)
-            ->with(['image', 'category', 'brand', 'reviews']);
-
-        // Search
-        if ($request->keyword) {
-            $query->where('name', 'like', '%' . $request->keyword . '%');
-        }
-
-        // Category filter
-        if ($request->category) {
-            $query->where('category_id', $request->category);
-        }
-
-        // Sort
-        switch ($request->sort) {
-            case '2':
-                $query->orderBy('id', 'ASC');
-                break;
-            case '3':
-                $query->orderBy('wholesale_price', 'DESC');
-                break;
-            case '4':
-                $query->orderBy('wholesale_price', 'ASC');
-                break;
-            case '5':
-                $query->orderBy('name', 'ASC');
-                break;
-            case '6':
-                $query->orderBy('name', 'DESC');
-                break;
-            default:
-                $query->orderBy('id', 'DESC');
-        }
-
-        $products = $query->paginate(24);
-        $categories = Category::where('status', 1)->where('parent_id', 0)->get();
-
-        return view('frontEnd.layouts.pages.wholesale_products', compact('products', 'categories'));
-    }
 }

@@ -59,11 +59,25 @@ class ShoppingController extends Controller
      */
     public static function hasDigitalProductInCart()
     {
+        $productIds = Cart::instance('shopping')->content()
+            ->pluck('id')
+            ->unique()
+            ->toArray();
+
+        if (empty($productIds)) {
+            return false;
+        }
+
+        if (Product::whereIn('id', $productIds)->where('is_digital', 1)->exists()) {
+            return true;
+        }
+
         foreach (Cart::instance('shopping')->content() as $item) {
             if (!empty($item->options->is_digital) && $item->options->is_digital == 1) {
                 return true;
             }
         }
+
         return false;
     }
 

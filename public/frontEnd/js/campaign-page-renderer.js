@@ -35,7 +35,13 @@
             container.replaceChildren(cloneTemplate('cpb-live-reviews-template'));
         });
 
-        const checkoutTargets = Array.from(root.querySelectorAll('[data-cpb-dynamic="checkout"]'));
+        let checkoutTargets = Array.from(root.querySelectorAll('[data-cpb-dynamic="checkout"]'));
+        if (!checkoutTargets.length) {
+            const holder = document.createElement('div');
+            holder.setAttribute('data-cpb-dynamic', 'checkout');
+            root.appendChild(holder);
+            checkoutTargets = [holder];
+        }
         checkoutTargets.forEach((container, index) => {
             if (index === 0) {
                 container.id = 'order_form';

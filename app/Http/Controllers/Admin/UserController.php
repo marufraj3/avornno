@@ -15,16 +15,13 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        // ✅ Filter out Vendor and Reseller users - only show Admin/Staff users
-        $data = User::whereNull('vendor_id') // Exclude vendor users
-            ->where(function($query) {
-                $query->where('role', '!=', 'reseller')
-                      ->orWhereNull('role');
+        $data = User::where(function ($query) {
+                $query->whereNull('role')->orWhereNotIn('role', ['reseller', 'vendor']);
             })
-            ->whereDoesntHave('roles', function($q) {
+            ->whereDoesntHave('roles', function ($q) {
                 $q->whereIn('name', ['vendor', 'reseller']);
             })
-            ->orderBy('id','DESC')
+            ->orderBy('id', 'DESC')
             ->get();
         
         return view('backEnd.users.index',compact('data'));

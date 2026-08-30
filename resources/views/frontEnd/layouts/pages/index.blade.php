@@ -327,7 +327,7 @@
         </section>
 
         {{-- ===== 4. FLASH DEALS + COUNTDOWN ===== --}}
-        @if(count($hotdeal_top) > 0)
+        @if(isset($flas_sales) && count($flas_sales) > 0)
         <section id="shop-now" class="home-section flash-section reveal">
             <div class="flash-header">
                 <div class="flash-title-group">
@@ -342,10 +342,10 @@
                     <span class="cd-sep">:</span>
                     <div class="cd-block"><span class="cd-secs">00</span><small>সেকেন্ড</small></div>
                 </div>
-                <a class="section-link" href="{{ route('hotdeals') }}">সব দেখুন <i class="fa-solid fa-arrow-right"></i></a>
+                <a class="section-link" href="{{ route('flashsales') }}">সব দেখুন <i class="fa-solid fa-arrow-right"></i></a>
             </div>
             <div class="product-grid">
-                @foreach($hotdeal_top as $product)
+                @foreach($flas_sales as $product)
                     @include('frontEnd.layouts.partials.product-card', ['product'=>$product])
                 @endforeach
             </div>

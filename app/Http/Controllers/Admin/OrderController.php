@@ -152,73 +152,18 @@ class OrderController extends Controller
 
     public function duplicateOrderCheck(Request $request)
     {
-        $mobile = $request->input('mobile');
+        $mobile = preg_replace('/[^0-9+]/', '', (string) $request->input('mobile'));
 
-        if (!$mobile) {
+        if ($mobile === '') {
             return response()->json(['status' => 'failed', 'message' => 'Mobile number missing']);
         }
 
-        // সেটিংস থেকে Duplicate Order API Key নেওয়া
-        $generalSetting = GeneralSetting::where('status', 1)->first();
-        $apiKey = isset($generalSetting->duplicate_order_api_key) ? $generalSetting->duplicate_order_api_key : null;
+        $result = $this->localDuplicateOrderLookup($mobile);
 
-        if (!$apiKey) {
-            return response()->json(['status' => 'failed', 'message' => 'Duplicate Order API Key missing']);
-        }
-
-        try {
-            // API কল করা (Duplicate Order API)
-            $response = Http::withHeaders([
-                'x-api-key'    => $apiKey,
-                'Content-Type' => 'application/json'
-            ])->post("https://www.creativedesign.com.bd/api/v1/check-duplicate-order", [
-                'phone' => $mobile,
-            ]);
-
-            $res = $response->json();
-
-            if (isset($res['status']) && $res['status'] === 'success') {
-                
-                // এই মোবাইল নাম্বারের সব অর্ডার খুঁজে বের করা
-                $orders = Order::whereHas('shipping', function ($q) use ($mobile) {
-                    $q->where('phone', $mobile);
-                })->get();
-
-                if ($orders->isEmpty()) {
-                    return response()->json(['status' => 'failed', 'message' => 'Order not found for this mobile']);
-                }
-
-                // সব অর্ডারে লুপ চালিয়ে ডাটা আপডেট করা
-                foreach ($orders as $order) {
-                    
-                    if (isset($res['is_duplicate']) && $res['is_duplicate'] === true) {
-                        $order->is_duplicate_order = 1; 
-                        $order->duplicate_order_count = isset($res['duplicate_count']) ? $res['duplicate_count'] : 0;
-                        $order->duplicate_order_rate = isset($res['duplicate_rate']) ? $res['duplicate_rate'] : 0;
-                        $order->last_duplicate_order_date = isset($res['last_duplicate_date']) ? \Carbon\Carbon::parse($res['last_duplicate_date']) : null;
-                    } 
-                    elseif (isset($res['data'])) {
-                        $cData = $res['data'];
-
-                        // Duplicate order related data
-                        $order->is_duplicate_order = isset($cData['is_duplicate']) && $cData['is_duplicate'] === true ? 1 : 0;
-                        $order->duplicate_order_count = isset($cData['duplicate_count']) ? $cData['duplicate_count'] : 0;
-                        $order->duplicate_order_rate = isset($cData['duplicate_rate']) ? $cData['duplicate_rate'] : 0;
-                        $order->last_duplicate_order_date = isset($cData['last_duplicate_date']) ? \Carbon\Carbon::parse($cData['last_duplicate_date']) : null;
-                    }
-                    $order->save();
-                }
-
-                return response()->json([
-                    'status' => 'success',
-                    'data'   => $res
-                ]);
-            } else {
-                return response()->json(['status' => 'failed', 'message' => 'API Error']);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
-        }
+        return response()->json([
+            'status' => 'success',
+            'data'   => $result,
+        ]);
     }
 
     public function manualDuplicateOrderCheckPage()
@@ -234,46 +179,48 @@ class OrderController extends Controller
             return back()->with('error', 'দয়া করে একটি মোবাইল নাম্বার লিখুন');
         }
 
-        // 1. ডাটাবেস থেকে সেটিংস আনা
-        $generalSetting = GeneralSetting::where('status', 1)->first();
-        $apiKey = isset($generalSetting->duplicate_order_api_key) ? $generalSetting->duplicate_order_api_key : null;
+        $data = $this->localDuplicateOrderLookup($mobile);
 
-        if (!$apiKey) {
-            return back()->with('error', 'Duplicate Order API Key সেটিংস প্যানেলে সেট করা নেই');
+        return view('backEnd.duplicate_order.manual_check', compact('mobile', 'data'));
+    }
+
+    /**
+     * Duplicate-order lookup against this store's own orders only.
+     */
+    private function localDuplicateOrderLookup(string $mobile): array
+    {
+        $digits = preg_replace('/\D+/', '', $mobile);
+        $tail = strlen($digits) >= 10 ? substr($digits, -10) : $digits;
+
+        $query = Order::query()->with(['shipping', 'status']);
+
+        if ($tail !== '') {
+            $query->whereHas('shipping', function ($q) use ($tail) {
+                $q->where('phone', 'like', '%' . $tail);
+            });
+        } else {
+            $query->whereHas('shipping', function ($q) use ($mobile) {
+                $q->where('phone', $mobile);
+            });
         }
 
-        $apiUrl = "https://www.creativedesign.com.bd/api/v1/check-duplicate-order";
+        $orders = $query->latest()->limit(50)->get();
 
-        try {
-            $response = Http::withHeaders([
-                'x-api-key'    => $apiKey,
-                'Content-Type' => 'application/json'
-            ])->post($apiUrl, [
-                'phone' => $mobile,
-            ]);
-
-            $res = $response->json();
-
-            if (isset($res['status']) && $res['status'] === 'success') {
-                
-                if (isset($res['is_duplicate']) && $res['is_duplicate'] === true) {
-                    $data = [
-                        'is_duplicate' => true,
-                        'message'  => isset($res['message']) ? $res['message'] : 'Duplicate order detected',
-                        'duplicate_count' => isset($res['duplicate_count']) ? $res['duplicate_count'] : 0
-                    ];
-                } else {
-                    $data = isset($res['data']) ? $res['data'] : [];
-                }
-                
-                return view('backEnd.duplicate_order.manual_check', compact('mobile', 'data'));
-
-            } else {
-                return back()->with('error', isset($res['message']) ? $res['message'] : 'Duplicate order check ব্যর্থ হয়েছে');
-            }
-        } catch (\Exception $e) {
-            return back()->with('error', 'API Error: ' . $e->getMessage());
-        }
+        return [
+            'is_duplicate' => $orders->count() > 1,
+            'duplicate_count' => $orders->count(),
+            'message' => $orders->count() > 1
+                ? 'This phone has previous orders in this store.'
+                : 'No duplicate orders found in this store.',
+            'orders' => $orders->map(function ($order) {
+                return [
+                    'invoice_id' => $order->invoice_id,
+                    'amount' => $order->amount,
+                    'status' => optional($order->status)->name,
+                    'created_at' => optional($order->created_at)->toDateTimeString(),
+                ];
+            })->values()->all(),
+        ];
     }
 
     /*

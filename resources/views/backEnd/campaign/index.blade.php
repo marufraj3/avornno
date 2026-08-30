@@ -95,7 +95,8 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <table id="datatable-buttons" class="table table-hover w-100 dt-responsive nowrap">
+                    <div class="table-responsive ar-table-wrap">
+                    <table id="datatable-buttons" class="table table-hover w-100">
                         <thead>
                             <tr>
                                 <th style="width: 50px;">SL</th>
@@ -117,7 +118,31 @@
                                         <a href="{{url('campaign',$value->slug)}}" target="_blank" class="campaign-link">
                                             <i class="fe-external-link me-1"></i> {{url('campaign',$value->slug)}}
                                         </a>
-                                        <span class="builder-status"><i class="fe-layout me-1"></i> Visual landing</span>
+                                        @php
+                                            $srcVisual = $value->hasVisualPage();
+                                            $srcCustom = $value->isCustomPageLive();
+                                            $srcLive = $srcVisual ? 'visual' : ($srcCustom ? 'custom' : 'basic');
+                                            $srcConflict = $srcVisual && $srcCustom;
+                                        @endphp
+                                        <div class="live-source">
+                                            <span class="live-source__label">Live Source</span>
+                                            <div class="live-source__steps">
+                                                <span class="live-source__chip {{ $srcLive === 'visual' ? 'is-live' : '' }}">Visual Builder</span>
+                                                <span class="live-source__arrow">›</span>
+                                                <span class="live-source__chip {{ $srcLive === 'custom' ? 'is-live' : '' }}">Custom Code</span>
+                                                <span class="live-source__arrow">›</span>
+                                                <span class="live-source__chip {{ $srcLive === 'basic' ? 'is-live' : '' }}">Basic fallback</span>
+                                            </div>
+                                            @if($srcConflict)
+                                            <div class="live-source__conflict">
+                                                Conflict: Custom Code is published, but customers currently see the Visual Builder snapshot (`page_html`). Visual wins over Custom in `FrontendController::campaign()`.
+                                            </div>
+                                            @elseif($value->is_published && $value->status && $srcLive === 'basic')
+                                            <div class="live-source__conflict">
+                                                Conflict: page is published, but neither Visual (`page_html`) nor Custom (`custom_html`) is live — customers see the Basic Blade fallback.
+                                            </div>
+                                            @endif
+                                        </div>
                                         <span class="publish-status {{ $value->is_published && $value->status ? 'publish-live' : 'publish-off' }}">
                                             {{ $value->is_published && $value->status ? '● Published' : '● Unpublished' }}
                                         </span>

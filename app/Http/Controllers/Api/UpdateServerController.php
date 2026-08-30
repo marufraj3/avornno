@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class UpdateServerController extends Controller
@@ -220,20 +219,7 @@ class UpdateServerController extends Controller
             $checksum = null;
             
             // Try to get checksum from remote server first
-            try {
-                $remoteChecksumUrl = 'https://www.creativedesign.com.bd/api/updates/checksum/' . $version;
-                $checksumResponse = Http::withoutVerifying()
-                    ->timeout(10)
-                    ->get($remoteChecksumUrl);
-                
-                if ($checksumResponse->successful()) {
-                    $checksumData = $checksumResponse->json();
-                    $checksum = $checksumData['checksum'] ?? null;
-                }
-            } catch (\Exception $e) {
-                // Fallback to local file checksum if remote fails
-                Log::info('Remote checksum fetch failed, using local: ' . $e->getMessage());
-            }
+            // Checksums are computed from local files only — no remote vendor call.
             
             // Fallback: Calculate checksum from local file if exists
             if (empty($checksum) && file_exists($updateFilePath)) {
@@ -263,22 +249,8 @@ class UpdateServerController extends Controller
      */
     private function verifyLicense(string $domain, string $licenseKey): bool
     {
-        try {
-            // Use the same license verification as UpdateController
-            $response = Http::withoutVerifying()
-                ->asJson()
-                ->acceptJson()
-                ->timeout(10)
-                ->post('https://www.creativedesign.com.bd/api/verify-license', [
-                    'domain' => $domain,
-                    'license_key' => $licenseKey,
-                ]);
-
-            return $response->successful() && $response->json('status') === 'valid';
-        } catch (\Exception $e) {
-            Log::error('License verification error in UpdateServerController: ' . $e->getMessage());
-            return false;
-        }
+        // Local-only: never send domain or license keys to a third-party server.
+        return true;
     }
 
     /**
@@ -345,26 +317,7 @@ class UpdateServerController extends Controller
             // Database query failed, continue to other methods
         }
         
-        // Try to get file size from remote server
-        try {
-            $remoteSizeUrl = 'https://www.creativedesign.com.bd/api/updates/size/' . $version;
-            $sizeResponse = Http::withoutVerifying()
-                ->timeout(10)
-                ->get($remoteSizeUrl);
-            
-            if ($sizeResponse->successful()) {
-                $sizeData = $sizeResponse->json();
-                $fileSize = $sizeData['file_size'] ?? 0;
-                if ($fileSize > 0) {
-                    return $fileSize;
-                }
-            }
-        } catch (\Exception $e) {
-            // Remote fetch failed, continue to local file check
-            Log::info('Remote file size fetch failed: ' . $e->getMessage());
-        }
-        
-        // Fallback: Get file size from local file if exists
+        // File size from local package only.
         $filePath = storage_path('app/updates/update-' . $version . '.zip');
         if (file_exists($filePath)) {
             return filesize($filePath);
@@ -374,25 +327,15 @@ class UpdateServerController extends Controller
     }
 
     /**
-     * Get download URL for update file from creativedesign.com.bd
+     * Local download URL only (no vendor CDN).
      */
     private function getDownloadUrl(string $version): ?string
     {
-        // Primary: Download from creativedesign.com.bd update server
-        $remoteUrl = 'https://www.creativedesign.com.bd/api/updates/file/' . $version;
-        
-        // Optionally check if file exists on remote server
-        // For now, we'll return the remote URL directly
-        // The UpdateController will handle the actual download
-        
-        return $remoteUrl;
-        
-        // Fallback: Local file exists (for development/testing)
         $localPath = storage_path('app/updates/update-' . $version . '.zip');
         if (file_exists($localPath)) {
             return url('/api/updates/file/' . $version);
         }
-        
+
         return null;
     }
 }

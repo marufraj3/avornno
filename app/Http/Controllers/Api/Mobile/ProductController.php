@@ -129,7 +129,6 @@ class ProductController extends Controller
             'new_price' => $product->new_price,
             'stock' => $product->stock,
             'is_digital' => $product->is_digital,
-            'is_wholesale' => $product->is_wholesale,
             'free_delivery' => $product->free_delivery ?? false,
             'image' => $product->image ? url($product->image->image) : null,
             'images' => $product->images->map(function($img) {

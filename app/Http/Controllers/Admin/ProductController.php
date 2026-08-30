@@ -9,7 +9,6 @@ use App\Models\Productimage;
 use App\Models\Productcolor;
 use App\Models\Productsize;
 use App\Models\ProductVariantPrice;
-use App\Models\ProductWholesalePrice;
 use App\Models\Category;
 use App\Models\Subcategory;
 use App\Models\Childcategory;
@@ -78,34 +77,6 @@ class ProductController extends Controller
     }
 
     // ================================
-    // WHOLESALE PRODUCTS
-    // ================================
-    public function wholesale(Request $request)
-    {
-        // Show only wholesale products (is_wholesale = 1)
-        $query = Product::where('is_wholesale', 1)
-            ->orderBy('id','DESC')
-            ->with('image','category','wholesalePrices');
-
-        if ($request->keyword) {
-            $query->where('name', 'LIKE', '%' . $request->keyword . "%");
-        }
-
-        if ($request->category_id) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        if ($request->status !== null) {
-            $query->where('status', $request->status);
-        }
-
-        $data = $query->paginate(20);
-        $categories = Category::where('parent_id', 0)->where('status', 1)->select('id', 'name')->get();
-        
-        return view('backEnd.product.wholesale', compact('data', 'categories'));
-    }
-
-    // ================================
     // CREATE
     // ================================
     public function create()
@@ -136,13 +107,6 @@ class ProductController extends Controller
             'digital_file'        => 'nullable|file|max:51200', // 50MB
             'download_limit'      => 'nullable|integer|min:1',
             'download_expire_days'=> 'nullable|integer|min:1',
-            
-            // Wholesale fields
-            'is_wholesale'        => 'nullable',
-            'wholesale_price'    => 'nullable|array',
-            'wholesale_price.*.min_quantity' => 'nullable|integer|min:1',
-            'wholesale_price.*.max_quantity' => 'nullable|integer|min:1',
-            'wholesale_price.*.wholesale_price' => 'nullable|numeric|min:0',
 
             // Size chart rows (landing page-এর Size Chart সেকশন)
             'size_chart'          => 'nullable|array',
@@ -209,8 +173,7 @@ class ProductController extends Controller
         $input['feature_product'] = $request->feature_product ? 1 : 0;
         $input['product_code']    = 'P' . str_pad($last_id, 4, '0', STR_PAD_LEFT);
         
-        // Wholesale settings
-        $input['is_wholesale'] = $request->is_wholesale ? 1 : 0;
+        $input['is_wholesale'] = 0;
         // Size chart — খালি রো বাদ দিয়ে অ্যারে হিসেবে (মডেল cast নিজে encode করবে)
         $input['size_chart'] = $this->normalizeSizeChart($request->input('size_chart'));
 
@@ -333,21 +296,6 @@ class ProductController extends Controller
             }
         }
 
-        // WHOLESALE PRICING TIERS
-        if ($input['is_wholesale'] && $request->wholesale_price && is_array($request->wholesale_price)) {
-            foreach ($request->wholesale_price as $tier) {
-                if (!empty($tier['min_quantity']) && !empty($tier['wholesale_price'])) {
-                    ProductWholesalePrice::create([
-                        'product_id'      => $product->id,
-                        'min_quantity'    => $tier['min_quantity'],
-                        'max_quantity'    => $tier['max_quantity'] ?? null,
-                        'wholesale_price' => $tier['wholesale_price'],
-                        'stock'           => $tier['stock'] ?? 0,
-                    ]);
-                }
-            }
-        }
-
         Toastr::success('Product created successfully!');
         return redirect()->route('products.index');
     }
@@ -362,7 +310,7 @@ class ProductController extends Controller
      */
     public function duplicate($id)
     {
-        $source = Product::with(['images', 'sizes', 'colors', 'variantPrices', 'wholesalePrices'])
+        $source = Product::with(['images', 'sizes', 'colors', 'variantPrices'])
             ->findOrFail($id);
 
         $copiedFiles = [];
@@ -402,16 +350,6 @@ class ProductController extends Controller
                     ]);
                 }
 
-                foreach ($source->wholesalePrices as $tier) {
-                    ProductWholesalePrice::create([
-                        'product_id' => $product->id,
-                        'min_quantity' => $tier->min_quantity,
-                        'max_quantity' => $tier->max_quantity,
-                        'wholesale_price' => $tier->wholesale_price,
-                        'stock' => $tier->stock,
-                    ]);
-                }
-
                 return $product;
             });
         } catch (\Throwable $exception) {
@@ -445,8 +383,7 @@ class ProductController extends Controller
             'brand',
             'colors',
             'sizes',
-            'variantPrices',
-            'wholesalePrices'
+            'variantPrices'
         ])->findOrFail($id);
             
         return view('backEnd.product.show', compact('product'));
@@ -469,7 +406,6 @@ class ProductController extends Controller
             'totalcolors'   => Color::where('status', 1)->get(),
             'selectcolors'  => Productcolor::where('product_id', $id)->get(),
             'selectsizes'   => Productsize::where('product_id', $id)->get(),
-            'wholesalePrices' => \App\Models\ProductWholesalePrice::where('product_id', $id)->get(),
         ]);
     }
 
@@ -490,13 +426,6 @@ class ProductController extends Controller
             'digital_file'        => 'nullable|file|max:51200',
             'download_limit'      => 'nullable|integer|min:1',
             'download_expire_days'=> 'nullable|integer|min:1',
-            
-            // Wholesale fields
-            'is_wholesale'        => 'nullable',
-            'wholesale_price'    => 'nullable|array',
-            'wholesale_price.*.min_quantity' => 'nullable|integer|min:1',
-            'wholesale_price.*.max_quantity' => 'nullable|integer|min:1',
-            'wholesale_price.*.wholesale_price' => 'nullable|numeric|min:0',
 
             // Size chart rows (landing page-এর Size Chart সেকশন)
             'size_chart'          => 'nullable|array',
@@ -514,7 +443,6 @@ class ProductController extends Controller
             'meta_image',
             'variant_price',
             'variant_image',
-            'wholesale_price',
             'digital_file',
             'proSize',
             'proColor',
@@ -558,8 +486,7 @@ class ProductController extends Controller
         // VIDEO — YouTube or local upload
         $this->handleVideoInput($request, $input, $product);
         
-        // Wholesale settings
-        $input['is_wholesale'] = $request->is_wholesale ? 1 : 0;
+        $input['is_wholesale'] = 0;
         // Size chart — খালি রো বাদ দিয়ে অ্যারে হিসেবে (মডেল cast নিজে encode করবে)
         $input['size_chart'] = $this->normalizeSizeChart($request->input('size_chart'));
 
@@ -679,23 +606,6 @@ class ProductController extends Controller
                     'price'      => $variant['price'] ?? 0,
                     'stock'      => $variant['stock'] ?? 0,
                 ]);
-            }
-        }
-
-        // WHOLESALE PRICING TIERS UPDATE
-        ProductWholesalePrice::where('product_id', $product->id)->delete();
-
-        if ($input['is_wholesale'] && $request->wholesale_price && is_array($request->wholesale_price)) {
-            foreach ($request->wholesale_price as $tier) {
-                if (!empty($tier['min_quantity']) && !empty($tier['wholesale_price'])) {
-                    ProductWholesalePrice::create([
-                        'product_id'      => $product->id,
-                        'min_quantity'    => $tier['min_quantity'],
-                        'max_quantity'    => $tier['max_quantity'] ?? null,
-                        'wholesale_price' => $tier['wholesale_price'],
-                        'stock'           => $tier['stock'] ?? 0,
-                    ]);
-                }
             }
         }
 

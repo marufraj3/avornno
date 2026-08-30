@@ -120,8 +120,8 @@ class GeneralSettingController extends Controller
         $input['favicon'] = $image3Url;
 		 $input['og_baner'] = $image4Url;
         
-        $input['vendor_enabled'] = 0; // Legacy column retained; vendor runtime is disabled.
-        $input['reseller_enabled'] = 0; // Legacy column retained; reseller runtime is disabled.
+        $input['vendor_enabled'] = 0;
+        $input['reseller_enabled'] = 0;
         $input['news_ticker_enabled'] = $request->has('news_ticker_enabled') ? 1 : 0;
         
         GeneralSetting::create($input);
@@ -231,7 +231,6 @@ class GeneralSettingController extends Controller
         }
         $input['status'] = 1;
         
-        // Legacy vendor/reseller columns retained; both runtimes are disabled.
         $input['vendor_enabled'] = 0;
         $input['reseller_enabled'] = 0;
         $input['news_ticker_enabled'] = $request->has('news_ticker_enabled') ? 1 : 0;

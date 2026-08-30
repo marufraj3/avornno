@@ -19,8 +19,6 @@ class Product extends Model
             'is_digital'           => 'boolean',
             'download_limit'       => 'integer',
             'download_expire_days' => 'integer',
-            'is_wholesale'         => 'boolean',
-            'min_wholesale_quantity' => 'integer',
             'free_delivery'        => 'boolean',
             'size_chart'           => 'array',
         ];
@@ -121,11 +119,6 @@ class Product extends Model
         return $this->hasMany(ProductVariantPrice::class, 'product_id');
     }
 
-    public function wholesalePrices()
-    {
-        return $this->hasMany(ProductWholesalePrice::class, 'product_id')->orderBy('min_quantity', 'asc');
-    }
-
     // ------------------------
     // Digital product related
     // ------------------------
@@ -142,21 +135,4 @@ class Product extends Model
         return (bool) $this->is_digital;
     }
 
-    // হেল্পার: এই প্রোডাক্ট wholesale কি না
-    public function isWholesale(): bool
-    {
-        return (bool) $this->is_wholesale;
-    }
-
-    // Scope: Wholesale products
-    public function scopeWholesale($query)
-    {
-        return $query->where('is_wholesale', 1);
-    }
-
-    // Scope: Regular products
-    public function scopeRegular($query)
-    {
-        return $query->where('is_wholesale', 0);
-    }
 }

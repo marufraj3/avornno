@@ -79,50 +79,6 @@
                     </div>
                 </div>
 
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="form-group mb-3">
-                            <label class="d-block form-label">Wholesale Product</label>
-                            <label class="switch"><input type="checkbox" value="1" name="is_wholesale" id="is_wholesale"><span class="slider round"></span></label>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="wholesale_area" style="display:none;" class="card mb-4">
-                    <div class="card-body">
-                        <div class="section-title d-flex justify-content-between align-items-center">
-                            <span><i class="fe-dollar-sign me-1"></i> Wholesale Pricing Tiers</span>
-                            <button type="button" class="btn btn-sm btn-success add-wholesale-tier rounded-pill px-3"><i class="fa fa-plus me-1"></i> Add New Tier</button>
-                        </div>
-                        
-                        <div id="wholesale-wrapper">
-                            <div class="variant-card">
-                                <div class="row align-items-end">
-                                    <div class="col-md-3 mb-2">
-                                        <label class="form-label">Min Quantity</label>
-                                        <input type="number" name="wholesale_price[0][min_quantity]" class="form-control" placeholder="e.g. 10">
-                                    </div>
-                                    <div class="col-md-3 mb-2">
-                                        <label class="form-label">Max Quantity</label>
-                                        <input type="number" name="wholesale_price[0][max_quantity]" class="form-control" placeholder="e.g. 50 (optional)">
-                                    </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label class="form-label">Wholesale Price</label>
-                                        <input type="number" step="0.01" name="wholesale_price[0][wholesale_price]" class="form-control" placeholder="0.00">
-                                    </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label class="form-label">Stock Qty</label>
-                                        <input type="number" name="wholesale_price[0][stock]" class="form-control" placeholder="0">
-                                    </div>
-                                    <div class="col-md-2 mb-2">
-                                        <button type="button" class="btn btn-success add-wholesale-tier w-100"><i class="fa fa-plus"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {{-- ===== Size Chart — ল্যান্ডিং পেজে কল্যাপ্সিবল টেবিল হিসেবে দেখাবে ===== --}}
                 <div class="card mb-4">
                     <div class="card-body">
@@ -639,39 +595,6 @@
                 $('<input>').attr({ type: 'hidden', name: 'variant_price[' + v.index + '][stock]', value: v.stock }).appendTo($('form[data-parsley-validate]'));
                 $('<input>').attr({ type: 'hidden', name: 'variant_price[' + v.index + '][image_row]', value: v.image_row }).appendTo($('form[data-parsley-validate]'));
             });
-        });
-
-        // Wholesale toggle
-        $("#is_wholesale").on("change", function () {
-            if ($(this).is(':checked')) {
-                $("#wholesale_area").slideDown();
-                $("#wholesale_area input").prop('required', true);
-            } else {
-                $("#wholesale_area").slideUp();
-                $("#wholesale_area input").prop('required', false);
-            }
-        });
-
-        // Wholesale pricing tiers
-        let wholesaleIndex = 1;
-        $("body").on("click", ".add-wholesale-tier", function () {
-            let wrapper = $("#wholesale-wrapper");
-            let firstRow = wrapper.find(".variant-card").first().clone();
-            
-            firstRow.find('input').each(function(){
-                let oldName = $(this).attr('name');
-                $(this).attr('name', oldName.replace(/\[\d+\]/, '[' + wholesaleIndex + ']'));
-                $(this).val('');
-            });
-
-            // Change add button to remove button
-            firstRow.find('.add-wholesale-tier').removeClass('btn-success add-wholesale-tier').addClass('btn-danger btn-remove-wholesale').html('<i class="fa fa-trash"></i>');
-            wrapper.append(firstRow);
-            wholesaleIndex++;
-        });
-
-        $("body").on("click", ".btn-remove-wholesale", function () {
-            $(this).parents(".variant-card").remove();
         });
 
         /* ===== Size Chart রো যোগ/বাদ ===== */

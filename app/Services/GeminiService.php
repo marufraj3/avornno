@@ -171,7 +171,7 @@ class GeminiService
         $text .= "\nAdmin Panel Features Knowledge:\n";
         $text .= "- POS System: /admin/order/create\n";
         $text .= "- Orders: /admin/order/all, pending etc\n";
-        $text .= "- Products: Inhouse, Pending, Wholesale\n";
+        $text .= "- Products: Inhouse, Pending\n";
         $text .= "- Fraud Check: /admin/manual-fraud-check\n";
         $text .= "- Settings: General, Site, API Integration, Email, etc\n";
         $text .= "- Fund/Account, Expenses, Purchases, Suppliers\n";
