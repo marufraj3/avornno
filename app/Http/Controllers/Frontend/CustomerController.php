@@ -1115,11 +1115,3 @@ public function order_save(Request $request)
         }
     }
 }
-ays)
-                                                    : null,
-                    ]
-                );
-            }
-        }
-    }
-}

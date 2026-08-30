@@ -105,9 +105,8 @@ class UddoktaPayController extends Controller
             $response = $uddoktapay->verify($request);
             $metadata = $response->metadata();
 
-            // Retired reseller deposit callbacks are rejected without mutating preserved data.
             if (($metadata['payment_type'] ?? null) === 'deposit') {
-                abort(410, 'Reseller deposits are no longer supported.');
+                abort(410, 'This payment type is no longer supported.');
             }
 
             $order_id = $metadata['order_id'] ?? null;
@@ -241,7 +240,6 @@ class UddoktaPayController extends Controller
         if ($response->success()) {
             $metadata = $response->metadata();
 
-            // Retired reseller deposit IPNs are acknowledged without changing preserved data.
             if (($metadata['payment_type'] ?? null) === 'deposit') {
                 return response()->json(['received' => true, 'ignored' => true], 410);
             }

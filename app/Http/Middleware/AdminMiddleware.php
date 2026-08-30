@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class AdminMiddleware
 {
     /**
-     * Ensure the user is authenticated with admin guard and has admin role (not vendor).
+     * Ensure the user is authenticated with the admin guard.
      */
     public function handle(Request $request, Closure $next)
     {
