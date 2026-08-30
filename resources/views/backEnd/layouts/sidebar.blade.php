@@ -23,7 +23,7 @@
           }
       });
       $salesOpen = request()->routeIs('admin.orders', 'admin.incomplete-orders.*', 'orderstatus.*', 'customers.ip_block', 'admin.refunds.*', 'backEnd.complaints.*', 'manualFraud.*');
-      $catalogOpen = request()->routeIs('inhouse.products.*', 'products.*', 'admin.products.wholesale', 'categories.*', 'subcategories.*', 'childcategories.*', 'brands.*', 'colors.*', 'sizes.*', 'reviews.*', 'admin.stock_alerts.*');
+      $catalogOpen = request()->routeIs('inhouse.products.*', 'products.*', 'categories.*', 'subcategories.*', 'childcategories.*', 'brands.*', 'colors.*', 'sizes.*', 'reviews.*', 'admin.stock_alerts.*');
       $purchaseOpen = request()->routeIs('purchases.*', 'admin.suppliers.*');
       $marketOpen = request()->routeIs('admin.coupons.*', 'admin.order_bumps.*', 'campaign.*', 'banners.*', 'admin.popup.*', 'admin.sms.custom.*', 'admin.newsletter.subscribers*', 'admin.facebook_page.*', 'admin.ads_analytics.*', 'tagmanagers.*', 'pixels.*', 'tiktok.pixels.*');
       $contentOpen = request()->routeIs('admin.blog.*', 'admin.contact.messages*');
@@ -94,7 +94,6 @@
             @can('product-list')
             <li><a href="{{ route('inhouse.products.index') }}">All Products</a></li>
             <li><a href="{{ route('products.pending') }}">Pending Products</a></li>
-            <li><a href="{{ route('admin.products.wholesale') }}">Wholesale</a></li>
             @endcan
             @can('product-create')
             <li><a href="{{ route('products.create') }}">Add Product</a></li>

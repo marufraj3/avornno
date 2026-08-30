@@ -178,32 +178,6 @@
                             @endif
                         @endif
 
-                        {{-- Wholesale tiers --}}
-                        @if($details->is_wholesale && $details->wholesalePrices && $details->wholesalePrices->count() > 0)
-                            <div class="sf-pd__var">
-                                <label><i class="fa-solid fa-tags" style="color:var(--c-green);margin-right:6px"></i>Wholesale Pricing <span class="sf-faint">— price applies automatically</span></label>
-                                <div class="sf-card-surface" style="overflow:hidden">
-                                    <table style="width:100%;border-collapse:collapse;font-size:13px">
-                                        <thead>
-                                            <tr style="background:#f8f9fc;color:var(--c-faint);text-transform:uppercase;font-size:10.5px;letter-spacing:.6px">
-                                                <th style="padding:10px 12px;text-align:left">Quantity</th>
-                                                <th style="padding:10px 12px;text-align:left">Unit Price</th>
-                                                <th style="padding:10px 12px;text-align:left">Stock</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($details->wholesalePrices->sortBy('min_quantity') as $tier)
-                                                <tr class="wholesale-tier-row" data-min-qty="{{ $tier->min_quantity }}" data-max-qty="{{ $tier->max_quantity ?? 999999 }}" data-price="{{ $tier->wholesale_price }}" style="border-top:1px solid var(--c-line)">
-                                                    <td style="padding:10px 12px;font-weight:700">{{ $tier->min_quantity }}{{ $tier->max_quantity ? ' – ' . $tier->max_quantity : '+' }} pcs</td>
-                                                    <td style="padding:10px 12px;color:#087a45;font-weight:800">৳{{ number_format($tier->wholesale_price) }}</td>
-                                                    <td style="padding:10px 12px;color:{{ ($tier->stock ?? 0) > 0 ? '#087a45' : 'var(--c-accent)' }}">{{ $tier->stock ?? 0 }} pcs</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        @endif
 
                         {{-- Actions --}}
                         <div class="sf-pd__actions">
@@ -424,15 +398,6 @@
             stockEl.className = 'sf-pd__stock ' + (hasStock ? 'in' : 'out');
             stockEl.innerHTML = '<i class="fa-solid fa-circle" style="font-size:8px;margin-right:4px"></i>' + (hasStock ? 'In Stock' : 'Out of Stock');
         }
-
-        @if($details->is_wholesale && $details->wholesalePrices && $details->wholesalePrices->count() > 0)
-        let qty = parseInt($("input[name='qty']").val()) || 1;
-        let tier = null;
-        @foreach($details->wholesalePrices->sortBy('min_quantity') as $tier)
-        if (qty >= {{ $tier->min_quantity }} && qty <= {{ $tier->max_quantity ?? 999999 }}) tier = {{ $tier->wholesale_price }};
-        @endforeach
-        if (tier !== null) basePrice = parseFloat(tier);
-        @endif
 
         $('#newPrice').html('<span class="cur">৳</span>' + basePrice.toLocaleString('en-US'));
     }

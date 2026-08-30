@@ -838,7 +838,6 @@ $brands = Brand::where('status', 1)
                     'brand',
                     'variantPrices.color',
                     'variantPrices.size',
-                    'wholesalePrices'
                 ])
                 ->firstOrFail();
         });
@@ -904,11 +903,9 @@ $brands = Brand::where('status', 1)
         // ভ্যারিয়েন্ট স্টক থাকলে সব সাইজ/কালারের মোট স্টকই আসল স্টক
         $variantRows = $p->variantPrices ?? collect();
         $hasVariantStock = $variantRows->contains(fn ($v) => $v->stock !== null);
-        $displayStock = !empty($p->is_wholesale)
-            ? 99999
-            : ($hasVariantStock
+        $displayStock = $hasVariantStock
                 ? (int) $variantRows->sum(fn ($v) => max(0, (int) $v->stock))
-                : (int) ($p->stock ?? 0));
+                : (int) ($p->stock ?? 0);
 
         $sizes = []; $colors = []; $variants = [];
 
@@ -1160,7 +1157,6 @@ $brands = Brand::where('status', 1)
                 'colors',
                 'variantPrices.size',
                 'variantPrices.color',
-                'wholesalePrices',
             ])
             ->when($campaign_data->product_id, function ($query, $primaryProductId) {
                 $query->orderByRaw('CASE WHEN products.id = ? THEN 0 ELSE 1 END', [$primaryProductId]);
@@ -1347,48 +1343,4 @@ $brands = Brand::where('status', 1)
         return null;
     }
 
-    // Wholesale Products Page
-    public function wholesaleProducts(Request $request)
-    {
-        $query = Product::where('status', 1)
-            ->where('approval_status', 'approved')
-            ->where('is_wholesale', 1)
-            ->with(['image', 'category', 'brand', 'reviews']);
-
-        // Search
-        if ($request->keyword) {
-            $query->where('name', 'like', '%' . $request->keyword . '%');
-        }
-
-        // Category filter
-        if ($request->category) {
-            $query->where('category_id', $request->category);
-        }
-
-        // Sort
-        switch ($request->sort) {
-            case '2':
-                $query->orderBy('id', 'ASC');
-                break;
-            case '3':
-                $query->orderBy('wholesale_price', 'DESC');
-                break;
-            case '4':
-                $query->orderBy('wholesale_price', 'ASC');
-                break;
-            case '5':
-                $query->orderBy('name', 'ASC');
-                break;
-            case '6':
-                $query->orderBy('name', 'DESC');
-                break;
-            default:
-                $query->orderBy('id', 'DESC');
-        }
-
-        $products = $query->paginate(24);
-        $categories = Category::where('status', 1)->where('parent_id', 0)->get();
-
-        return view('frontEnd.layouts.pages.wholesale_products', compact('products', 'categories'));
-    }
 }

@@ -131,90 +131,6 @@
                     </div>
                 </div>
 
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="form-group mb-3">
-                            <label class="d-block form-label">Wholesale Product</label>
-                            <label class="switch">
-                                <input type="checkbox" value="1" name="is_wholesale" id="is_wholesale" {{ old('is_wholesale', $edit_data->is_wholesale ?? 0) ? 'checked' : '' }}>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- WHOLESALE PRICING TIERS --}}
-                <div id="wholesale_area" style="{{ old('is_wholesale', $edit_data->is_wholesale ?? 0) ? 'display:block;' : 'display:none;' }}" class="card mb-4">
-                    <div class="card-body">
-                        <div class="section-title d-flex justify-content-between align-items-center">
-                            <span><i class="fe-dollar-sign me-1"></i> Wholesale Pricing Tiers</span>
-                            <button type="button" class="btn btn-sm btn-success add-wholesale-tier rounded-pill px-3"><i class="fa fa-plus me-1"></i> Add New Tier</button>
-                        </div>
-                        
-                        <div id="wholesale-wrapper">
-                            @if($wholesalePrices && $wholesalePrices->count() > 0)
-                                @foreach($wholesalePrices as $key => $tier)
-                                    <div class="variant-card">
-                                        <div class="row align-items-end">
-                                            <div class="col-md-3 mb-2">
-                                                <label class="form-label">Min Quantity</label>
-                                                <input type="number" name="wholesale_price[{{ $key }}][min_quantity]" class="form-control" 
-                                                       value="{{ old('wholesale_price.'.$key.'.min_quantity', $tier->min_quantity) }}">
-                                            </div>
-                                            <div class="col-md-3 mb-2">
-                                                <label class="form-label">Max Quantity</label>
-                                                <input type="number" name="wholesale_price[{{ $key }}][max_quantity]" class="form-control" 
-                                                       value="{{ old('wholesale_price.'.$key.'.max_quantity', $tier->max_quantity) }}" placeholder="Optional">
-                                            </div>
-                                            <div class="col-md-2 mb-2">
-                                                <label class="form-label">Wholesale Price</label>
-                                                <input type="number" step="0.01" name="wholesale_price[{{ $key }}][wholesale_price]" class="form-control" 
-                                                       value="{{ old('wholesale_price.'.$key.'.wholesale_price', $tier->wholesale_price) }}">
-                                            </div>
-                                            <div class="col-md-2 mb-2">
-                                                <label class="form-label">Stock Qty</label>
-                                                <input type="number" name="wholesale_price[{{ $key }}][stock]" class="form-control" 
-                                                       value="{{ old('wholesale_price.'.$key.'.stock', $tier->stock ?? 0) }}" placeholder="0">
-                                            </div>
-                                            <div class="col-md-2 mb-2">
-                                                @if($loop->first)
-                                                    <button type="button" class="btn btn-success add-wholesale-tier w-100"><i class="fa fa-plus"></i></button>
-                                                @else
-                                                    <button type="button" class="btn btn-danger btn-remove-wholesale w-100"><i class="fa fa-trash"></i></button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="variant-card">
-                                    <div class="row align-items-end">
-                                        <div class="col-md-3 mb-2">
-                                            <label class="form-label">Min Quantity</label>
-                                            <input type="number" name="wholesale_price[0][min_quantity]" class="form-control" placeholder="e.g. 10">
-                                        </div>
-                                        <div class="col-md-3 mb-2">
-                                            <label class="form-label">Max Quantity</label>
-                                            <input type="number" name="wholesale_price[0][max_quantity]" class="form-control" placeholder="e.g. 50 (optional)">
-                                        </div>
-                                        <div class="col-md-2 mb-2">
-                                            <label class="form-label">Wholesale Price</label>
-                                            <input type="number" step="0.01" name="wholesale_price[0][wholesale_price]" class="form-control" placeholder="0.00">
-                                        </div>
-                                        <div class="col-md-2 mb-2">
-                                            <label class="form-label">Stock Qty</label>
-                                            <input type="number" name="wholesale_price[0][stock]" class="form-control" placeholder="0">
-                                        </div>
-                                        <div class="col-md-2 mb-2">
-                                            <button type="button" class="btn btn-success add-wholesale-tier w-100"><i class="fa fa-plus"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
                 {{-- VARIANT PRICE CARD --}}
                 {{-- ===== Size Chart — ল্যান্ডিং পেজে কল্যাপ্সিবল টেবিল হিসেবে দেখাবে ===== --}}
                 @php $sizeChartRows = $edit_data->size_chart ?? []; @endphp
@@ -1171,43 +1087,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('product_type').addEventListener('change', toggleFields);
     
-    // Wholesale toggle
-    document.getElementById('is_wholesale').addEventListener('change', function() {
-        var wholesaleArea = document.getElementById('wholesale_area');
-        if (this.checked) {
-            wholesaleArea.style.display = 'block';
-            wholesaleArea.querySelectorAll('input').forEach(function(input) {
-                input.setAttribute('required', 'required');
-            });
-        } else {
-            wholesaleArea.style.display = 'none';
-            wholesaleArea.querySelectorAll('input').forEach(function(input) {
-                input.removeAttribute('required');
-            });
-        }
-    });
-    toggleFields(); // initial
-    // Wholesale pricing tiers
-    let wholesaleIndex = {{ ($wholesalePrices && $wholesalePrices->count() > 0) ? $wholesalePrices->count() : 1 }};
-    $('.add-wholesale-tier').on('click', function() {
-        let wrapper = $('#wholesale-wrapper');
-        let firstRow = wrapper.find('.variant-card').first().clone();
-        
-        firstRow.find('input').each(function(){
-            let oldName = $(this).attr('name');
-            $(this).attr('name', oldName.replace(/\[\d+\]/, '[' + wholesaleIndex + ']'));
-            $(this).val('');
-        });
-
-        firstRow.find('.btn-remove-wholesale').removeClass('d-none');
-        wrapper.append(firstRow);
-        wholesaleIndex++;
-    });
-    
-    $("body").on("click", ".btn-remove-wholesale", function () {
-        $(this).parents(".variant-card").remove();
-    });
-
     /* ===== Size Chart রো যোগ/বাদ ===== */
     let sizeChartIndex = $("#size-chart-wrapper .size-chart-row").length;
     $("body").on("click", ".add-size-chart-row", function () {

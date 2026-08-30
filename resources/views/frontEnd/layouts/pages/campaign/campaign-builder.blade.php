@@ -80,18 +80,7 @@
                     'price' => (float) $variant->price,
                     'stock' => $variant->stock === null ? null : (int) $variant->stock,
                 ])->values(),
-                // ⭐ প্যাকেজ/বাণ্ডল প্রাইস — "১ পিস: ৬৫০ / ২ পিস: ১০৯০" স্টাইলে দেখানো হয়
-                'tiers' => optional($product->wholesalePrices)
-                    ->sortBy('min_quantity')
-                    ->map(fn ($tier) => [
-                        'min'   => (int) $tier->min_quantity,
-                        'max'   => $tier->max_quantity === null ? null : (int) $tier->max_quantity,
-                        'price' => (float) $tier->wholesale_price,
-                        'unit'  => (int) $tier->min_quantity > 0
-                            ? round((float) $tier->wholesale_price / (int) $tier->min_quantity)
-                            : (float) $tier->wholesale_price,
-                    ])
-                    ->values() ?? collect(),
+                'tiers' => collect(),
                 'size_chart' => array_values(array_filter(
                     (array) ($product->size_chart ?? []),
                     fn ($row) => is_array($row) && !empty($row['size'])

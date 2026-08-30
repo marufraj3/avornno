@@ -63,15 +63,6 @@
                             </div>
                             <i class="fe-layers text-primary"></i>
                         </div>
-                        @if($product->is_wholesale)
-                        <div class="dash-cust">
-                            <div>
-                                <strong>Wholesale Enabled</strong>
-                                <span class="text-muted d-block mt-1">Tier based pricing is active</span>
-                            </div>
-                            <i class="fe-package text-success"></i>
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -97,9 +88,6 @@
                             <span class="badge badge-soft-primary px-2 py-1"><i class="fe-star"></i> Featured</span>
                         @endif
 
-                        @if($product->is_wholesale)
-                            <span class="badge badge-soft-success px-2 py-1"><i class="fe-layers"></i> Wholesale</span>
-                        @endif
                     </div>
 
                     <div class="mt-3">
@@ -154,35 +142,6 @@
                                         @else
                                             <span class="text-muted">No file uploaded</span>
                                         @endif
-                                    </td>
-                                </tr>
-                                @endif
-                                @if($product->is_wholesale && $product->wholesalePrices && $product->wholesalePrices->count() > 0)
-                                <tr>
-                                    <th>Wholesale Pricing Tiers</th>
-                                    <td>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Min Qty</th>
-                                                        <th>Max Qty</th>
-                                                        <th>Price</th>
-                                                        <th>Stock</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($product->wholesalePrices as $tier)
-                                                    <tr>
-                                                        <td>{{ $tier->min_quantity }}</td>
-                                                        <td>{{ $tier->max_quantity ?? 'Unlimited' }}</td>
-                                                        <td>৳{{ number_format($tier->wholesale_price, 2) }}</td>
-                                                        <td>{{ $tier->stock ?? 0 }}</td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
                                     </td>
                                 </tr>
                                 @endif

@@ -35,7 +35,7 @@
                 <strong title="{{ $value->name }}">{{ Str::limit($value->name, 52) }}</strong>
                 <small>
                   {{ !empty($value->is_digital) ? 'Digital product' : 'Physical product' }}
-                  @if(!empty($value->is_wholesale)) · Wholesale @endif
+
                   @if(!empty($value->topsale)) · Hot deal @endif
                 </small>
               </div>
