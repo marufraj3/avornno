@@ -404,6 +404,10 @@ public function order_save(Request $request)
             'area'=>'required',
         ]);
 
+        if ($request->area === 'free_shipping') {
+            $request->merge(['area' => null]);
+        }
+
         if(Cart::instance('shopping')->count() <= 0) {
             if ($request->expectsJson() || $request->header('X-Campaign-Page')) {
                 return response()->json(['success' => false, 'message' => 'কার্ট খালি। প্রোডাক্ট সিলেক্ট করুন।'], 422);

@@ -374,6 +374,9 @@ $brands = Brand::where('status', 1)
                 'image'            => $product->image->image ?? null,
                 'slug'             => $product->slug,
                 'purchase_price'   => $product->purchase_price ?? null,
+                'advance_amount'   => (float) ($product->advance_amount ?? 0),
+                'is_digital'       => (int) ($product->is_digital ?? 0),
+                'free_delivery'    => (int) ($product->free_delivery ?? 0),
             ],
         ]);
 
