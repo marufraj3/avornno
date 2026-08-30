@@ -51,19 +51,6 @@ class FrontendController extends Controller
     
    
 
-    protected function sendUnauthorizedReport($domain, $reason)
-    {
-        try {
-            \Illuminate\Support\Facades\Http::timeout(4)->post('https://www.creativedesign.com.bd/api/log-unauthorized', [
-                'domain' => $domain,
-                'ip'     => request()->ip(),
-                'reason' => $reason,
-                'url'    => request()->fullUrl(),
-                'time'   => now()->toDateTimeString()
-            ]);
-        } catch (\Exception $e) {}
-    }
-    
     public function index()
     {
         // ✅ Homepage cache (5 min) - reduces DB load on high traffic

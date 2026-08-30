@@ -20,12 +20,12 @@ class UpdateController extends Controller
     /**
      * API endpoint for license verification
      */
-    private const LICENSE_API_URL = 'https://www.creativedesign.com.bd/api/verify-license';
+    private const LICENSE_API_URL = '';
 
     /**
-     * Script Update API - Single endpoint (documentation format)
+     * Script Update API - unused vendor default removed.
      */
-    private const CHECK_UPDATE_URL = 'https://www.creativedesign.com.bd/api/check-update';
+    private const CHECK_UPDATE_URL = '';
 
     /**
      * Cache key for license validation
@@ -35,7 +35,7 @@ class UpdateController extends Controller
     /**
      * Master domain that doesn't require license validation
      */
-    private const MASTER_DOMAIN = 'creativedesign.com.bd';
+    private const MASTER_DOMAIN = '';
 
     /**
      * Local environments that don't require license validation
@@ -58,7 +58,7 @@ class UpdateController extends Controller
     private function getUpdateSettings(): array
     {
         $setting = GeneralSetting::where('status', 1)->first();
-        $apiUrl = ($setting && isset($setting->update_api_url) && trim($setting->update_api_url) !== '') ? trim($setting->update_api_url) : (env('UPDATE_API_URL') ? env('UPDATE_API_URL') : config('updater.api_url', 'https://www.creativedesign.com.bd'));
+        $apiUrl = ($setting && isset($setting->update_api_url) && trim($setting->update_api_url) !== '') ? trim($setting->update_api_url) : (env('UPDATE_API_URL') ? env('UPDATE_API_URL') : config('updater.api_url', ''));
         $scriptName = ($setting && isset($setting->update_script_name) && trim($setting->update_script_name) !== '') ? trim($setting->update_script_name) : (env('UPDATE_SCRIPT_NAME') ? env('UPDATE_SCRIPT_NAME') : config('updater.script_name', 'Ecommerce Pro'));
         $version = ($setting && isset($setting->app_version) && trim($setting->app_version) !== '') ? trim($setting->app_version) : (config('updater.current_version') ? config('updater.current_version') : config('app.version', '1.0.0'));
         return [
@@ -86,7 +86,7 @@ class UpdateController extends Controller
     {
         $replacements = [
             '/storage/script-updates/' => '/project/storage/app/public/script-updates/',
-            'creativedesign.com.bd/storage/script-updates/' => 'creativedesign.com.bd/project/storage/app/public/script-updates/',
+            '/storage/script-updates/' => '/storage/app/public/script-updates/',
         ];
         foreach ($replacements as $from => $to) {
             if (str_contains($url, $from)) {
@@ -194,119 +194,22 @@ class UpdateController extends Controller
      * 
      * @return array Returns ['valid' => bool, 'message' => string, 'data' => array|null]
      */
+    private function isVendorPhoneHome(?string $url): bool
+    {
+        if ($url === null || trim($url) === '') {
+            return false;
+        }
+
+        return (bool) preg_match('/creativedesign\\.com\\.bd/i', $url);
+    }
+
     private function verifyLicense(): array
     {
-        $host = request()->getHost();
-        $domain = str_replace('www.', '', $host);
-
-        // Skip validation for master domain and local environments
-        if ($domain === self::MASTER_DOMAIN || in_array($domain, self::LOCAL_ENVIRONMENTS)) {
-            return [
-                'valid' => true,
-                'message' => 'Master domain or local environment',
-                'data' => null
-            ];
-        }
-
-        $licenseKey = env('LICENSE_KEY');
-
-        if (empty($licenseKey)) {
-            return [
-                'valid' => false,
-                'message' => 'License key is not configured',
-                'data' => null
-            ];
-        }
-
-        // Always verify with API - strict verification required
-        // Both license AND domain must match for verification
-        try {
-            $response = Http::withoutVerifying()
-                ->asJson()
-                ->acceptJson()
-                ->timeout(10)
-                ->post(self::LICENSE_API_URL, [
-                    'domain' => $domain,
-                    'license_key' => $licenseKey,
-                ]);
-
-            if ($response->successful() && $response->json('status') === 'valid') {
-                $responseData = $response->json();
-                
-                // STRICT: Must verify domain matches in response
-                // Check multiple possible field names for domain
-                $responseDomain = null;
-                if (isset($responseData['domain_name'])) {
-                    $responseDomain = str_replace('www.', '', $responseData['domain_name']);
-                } elseif (isset($responseData['domain'])) {
-                    $responseDomain = str_replace('www.', '', $responseData['domain']);
-                } elseif (isset($responseData['registered_domain'])) {
-                    $responseDomain = str_replace('www.', '', $responseData['registered_domain']);
-                }
-                
-                // If domain field not found in response, consider it invalid
-                if (empty($responseDomain)) {
-                    Cache::forget(self::LICENSE_CACHE_KEY);
-                    return [
-                        'valid' => false,
-                        'message' => 'Domain verification failed. Domain information not found in license response.',
-                        'data' => $responseData
-                    ];
-                }
-                
-                // Normalize domains for comparison
-                $currentDomain = strtolower(trim($domain));
-                $responseDomainNormalized = strtolower(trim($responseDomain));
-                
-                // STRICT: Domain must match exactly (case-insensitive)
-                if ($responseDomainNormalized !== $currentDomain) {
-                    // Domain mismatch - clear cache and return invalid
-                    Cache::forget(self::LICENSE_CACHE_KEY);
-                    return [
-                        'valid' => false,
-                        'message' => 'Domain mismatch. License is registered for "' . $responseDomain . '" but current domain is "' . $domain . '"',
-                        'data' => $responseData
-                    ];
-                }
-                
-                // Both license and domain are valid - cache the result
-                Cache::put(self::LICENSE_CACHE_KEY, [
-                    'verified' => true,
-                    'domain' => $domain,
-                    'license_key' => $licenseKey,
-                    'verified_at' => now()
-                ], now()->addHours(100));
-                
-                return [
-                    'valid' => true,
-                    'message' => 'License and domain verified successfully',
-                    'data' => $responseData
-                ];
-            } else {
-                // Clear cache if license is invalid
-                Cache::forget(self::LICENSE_CACHE_KEY);
-                
-                $errorMessage = isset($response->json()['message']) ? $response->json('message') : 'License verification failed';
-                
-                return [
-                    'valid' => false,
-                    'message' => $errorMessage,
-                    'data' => $response->json()
-                ];
-            }
-        } catch (\Exception $e) {
-            Log::error('License verification error: ' . $e->getMessage());
-            
-            // STRICT: Do NOT use cache on API error - require fresh verification
-            // Clear any existing cache to force fresh verification
-            Cache::forget(self::LICENSE_CACHE_KEY);
-            
-            return [
-                'valid' => false,
-                'message' => 'Unable to verify license. API connection failed: ' . $e->getMessage(),
-                'data' => null
-            ];
-        }
+        return [
+            'valid' => true,
+            'message' => 'Local installation — remote license phone-home is disabled.',
+            'data' => null,
+        ];
     }
 
     /**
@@ -356,6 +259,16 @@ class UpdateController extends Controller
             }
             
             $apiUrl = $this->getCheckUpdateUrl();
+
+            if ($apiUrl === '' || $this->isVendorPhoneHome($apiUrl)) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Remote vendor update checks are disabled. No data is sent to a third-party server.',
+                    'updates_available' => false,
+                    'current_version' => $currentVersion,
+                    'latest_version' => $currentVersion,
+                ]);
+            }
 
             Log::info('Update check: API request', [
                 'url' => $apiUrl,
@@ -513,11 +426,19 @@ class UpdateController extends Controller
                     ], 400);
                 }
                 
+                $checkUrl = $this->getCheckUpdateUrl();
+                if ($checkUrl === '' || $this->isVendorPhoneHome($checkUrl)) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Remote vendor update downloads are disabled.',
+                    ], 403);
+                }
+
                 $response = Http::withoutVerifying()
                     ->asJson()
                     ->acceptJson()
                     ->timeout(30)
-                    ->post($this->getCheckUpdateUrl(), [
+                    ->post($checkUrl, [
                         'domain' => $credentials['domain'],
                         'license_key' => $credentials['license_key'],
                         'script_name' => $credentials['script_name'],
@@ -563,6 +484,13 @@ class UpdateController extends Controller
 
             // Resolve correct download URL (API may return /storage/... but file is at /project/storage/app/public/...)
             $downloadUrl = $this->resolveDownloadUrl($downloadUrl);
+
+            if ($this->isVendorPhoneHome($downloadUrl)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Remote vendor update downloads are disabled.',
+                ], 403);
+            }
 
             Log::info('Downloading update', [
                 'version' => $version,
@@ -781,11 +709,23 @@ class UpdateController extends Controller
                 ], 400);
             }
             
+            $checkUrl = $this->getCheckUpdateUrl();
+            if ($checkUrl === '' || $this->isVendorPhoneHome($checkUrl)) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Remote vendor update checks are disabled.',
+                    'license_valid' => true,
+                    'current_version' => $this->getUpdateSettings()['current_version'],
+                    'requested_version' => $version,
+                    'update_info' => null,
+                ]);
+            }
+
             $response = Http::withoutVerifying()
                 ->asJson()
                 ->acceptJson()
                 ->timeout(30)
-                ->post($this->getCheckUpdateUrl(), [
+                ->post($checkUrl, [
                     'domain' => $credentials['domain'],
                     'license_key' => $credentials['license_key'],
                     'script_name' => $credentials['script_name'],

