@@ -1256,10 +1256,10 @@ $brands = Brand::where('status', 1)
         // Admin visual builder (page_html/page_css) is the live storefront when present.
         // Custom HTML/CSS/JS is next. Only fall back to the premium Blade template
         // when neither published design exists — otherwise admin canvas ≠ frontend.
-        if (filled($campaign_data->page_html)) {
+        if ($campaign_data->hasVisualPage()) {
             $viewData['pageType'] = 'visual';
-            // Do not set renderPageHtml: campaign-builder.blade.php then uses
-            // $campaign_data->page_html / page_css and replaces {{campaign.*}} tokens.
+            // Leave renderPageHtml unset so the Blade view uses page_html + page_css
+            // (same snapshot the admin visual builder saved) and replaces tokens.
         } elseif ($campaign_data->isCustomPageLive()) {
             $viewData['pageType'] = 'custom';
             $viewData['renderPageHtml'] = $campaign_data->custom_html;

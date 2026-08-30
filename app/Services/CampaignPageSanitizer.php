@@ -10,10 +10,10 @@ class CampaignPageSanitizer
     /** @var array<int, string> */
     private array $allowedTags = [
         'a', 'article', 'aside', 'b', 'blockquote', 'br', 'button', 'del', 'details',
-        'div', 'em', 'footer', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr',
-        'i', 'img', 'li', 'main', 'mark', 'ol', 'p', 'picture', 'section', 'small',
-        'source', 'span', 'strong', 'summary', 'sup', 'table', 'tbody', 'td', 'tfoot',
-        'th', 'thead', 'tr', 'u', 'ul', 'video',
+        'div', 'em', 'figcaption', 'figure', 'footer', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'header', 'hr', 'i', 'img', 'li', 'main', 'mark', 'ol', 'p', 'picture', 'section',
+        'small', 'source', 'span', 'strong', 'summary', 'sup', 'table', 'tbody', 'td',
+        'tfoot', 'th', 'thead', 'tr', 'u', 'ul', 'video',
     ];
 
     /**

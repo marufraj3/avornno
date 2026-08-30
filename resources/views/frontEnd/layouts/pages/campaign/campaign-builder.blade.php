@@ -150,10 +150,10 @@
         ];
         $hasRenderedSource = isset($renderPageHtml);
         $sourceHtml = $hasRenderedSource ? $renderPageHtml : ($campaign_data->page_html ?? '');
-        $publishedHtml = $hasRenderedSource
-            ? (string) $sourceHtml
-            : strtr((string) $sourceHtml, $tokenValues);
-        $publishedCss = $hasRenderedSource ? ($renderPageCss ?? '') : ($campaign_data->page_css ?? '');
+        $publishedHtml = strtr((string) $sourceHtml, $tokenValues);
+        $publishedCss = $hasRenderedSource
+            ? ($renderPageCss ?? '')
+            : ($campaign_data->page_css ?? '');
         $publishedJs = $hasRenderedSource ? ($renderPageJs ?? null) : null;
         $pageType = $pageType ?? 'visual';
     @endphp
@@ -179,7 +179,9 @@
          এই পেজের সব স্টাইল campaign-page-renderer.css + builder-এর page_css থেকে আসে
          এবং renderer JS সম্পূর্ণ vanilla। FB ads ট্রাফিকের জন্য ~৩৫০KB সাশ্রয়। --}}
     <link rel="stylesheet" href="{{ asset('public/frontEnd/css/campaign-page-renderer.css') }}">
-    <link rel="stylesheet" href="{{ asset('public/frontEnd/css/campaign-premium.css') }}">
+    @if($pageType === 'premium')
+        <link rel="stylesheet" href="{{ asset('public/frontEnd/css/campaign-premium.css') }}">
+    @endif
     @if(!empty($lpEditor))
         <link rel="stylesheet" href="{{ asset('public/frontEnd/css/landing-editor.css') }}">
     @endif

@@ -102,6 +102,11 @@ class Campaign extends Model
         return $this->hasMany(OrderBump::class, 'campaign_id');
     }
 
+    public function hasVisualPage(): bool
+    {
+        return filled($this->page_html);
+    }
+
     public function isCustomPageLive(): bool
     {
         return $this->custom_page_published_at !== null
