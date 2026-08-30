@@ -346,10 +346,12 @@
             </div>
             <div class="sf-owl-nav">
                 <div class="owl-carousel related_slider">
-                    @foreach($products as $product)
-                        <div style="padding:4px">
+                    @foreach($products->unique('id') as $product)
+                        @if($product->id != $details->id)
+                        <div class="item" style="padding:4px">
                             @include('frontEnd.layouts.partials.product-card', ['product' => $product])
                         </div>
+                        @endif
                     @endforeach
                 </div>
             </div>

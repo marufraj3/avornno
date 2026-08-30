@@ -843,14 +843,53 @@ $brands = Brand::where('status', 1)
                 ->firstOrFail();
         });
 
-        // Related products: limit 12, exclude current, eager load to avoid N+1
-        $products = Product::where('category_id', $details->category_id)
+        $relatedWith = ['image', 'category', 'brand', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size'];
+        $relatedSelect = ['id', 'name', 'slug', 'new_price', 'old_price', 'stock', 'category_id', 'subcategory_id', 'brand_id', 'pro_unit'];
+        $relatedBase = Product::query()
             ->where('id', '!=', $details->id)
-            ->where(['status' => 1, 'approval_status' => 'approved'])
-            ->with(['image', 'category', 'brand', 'reviews', 'prosizes', 'procolors', 'variantPrices.color', 'variantPrices.size'])
-            ->select('id', 'name', 'slug', 'new_price', 'old_price', 'stock', 'category_id', 'brand_id', 'pro_unit')
+            ->where('status', 1)
+            ->where('approval_status', 'approved')
+            ->with($relatedWith)
+            ->select($relatedSelect);
+
+        $products = (clone $relatedBase)
+            ->when($details->category_id, fn ($q) => $q->where('category_id', $details->category_id))
+            ->latest('id')
             ->limit(12)
-            ->get();
+            ->get()
+            ->unique('id')
+            ->values();
+
+        if ($products->count() < 8 && $details->subcategory_id) {
+            $extra = (clone $relatedBase)
+                ->where('subcategory_id', $details->subcategory_id)
+                ->whereNotIn('id', $products->pluck('id')->push($details->id))
+                ->latest('id')
+                ->limit(12)
+                ->get();
+            $products = $products->concat($extra)->unique('id')->values();
+        }
+
+        if ($products->count() < 8 && $details->brand_id) {
+            $extra = (clone $relatedBase)
+                ->where('brand_id', $details->brand_id)
+                ->whereNotIn('id', $products->pluck('id')->push($details->id))
+                ->latest('id')
+                ->limit(12)
+                ->get();
+            $products = $products->concat($extra)->unique('id')->values();
+        }
+
+        if ($products->count() < 8) {
+            $extra = (clone $relatedBase)
+                ->whereNotIn('id', $products->pluck('id')->push($details->id))
+                ->latest('id')
+                ->limit(12)
+                ->get();
+            $products = $products->concat($extra)->unique('id')->values();
+        }
+
+        $products = $products->take(12)->values();
 
         $shippingcharge = Cache::remember('shipping_charges_active', 300, fn() => ShippingCharge::where('status', 1)->get());
         $reviews = Review::where('product_id', $details->id)
