@@ -116,7 +116,7 @@
     var closeBtn = byId('sidebarCloseBtn');
     if (!sidebar || !menu) return;
 
-    var DESKTOP = 992;
+    var DESKTOP = 1200;
     var STORE_KEY = 'ar-sidebar-collapsed';
 
     function isDesktop() {
@@ -296,7 +296,7 @@
             return;
           }
           filterMenu(query);
-        }, 120);
+        }, 300);
       });
     }
 
@@ -380,7 +380,7 @@
             results.innerHTML = '<div class="gsearch-empty">Search is unavailable right now.</div>';
             results.style.display = 'block';
           });
-      }, 180);
+      }, 300);
     });
 
     document.addEventListener('click', function (event) {
@@ -437,9 +437,44 @@
     setupGlobalSearch();
     setupConfirmActions();
     prefetchLinks();
+    setupTableCards();
+    setupFormBusy();
 
     if (window.feather && typeof window.feather.replace === 'function') {
       window.feather.replace();
     }
   });
+
+  function setupTableCards() {
+    document.querySelectorAll('.table-responsive table, table.table').forEach(function (table) {
+      if (table.classList.contains('js-keep-table')) return;
+      var heads = Array.prototype.map.call(table.querySelectorAll('thead th'), function (th) {
+        return (th.textContent || '').trim();
+      });
+      if (!heads.length) return;
+      table.classList.add('ar-card-table');
+      var wrap = table.closest('.table-responsive');
+      if (wrap) wrap.classList.add('ar-table-wrap');
+      table.querySelectorAll('tbody tr').forEach(function (row) {
+        Array.prototype.forEach.call(row.children, function (cell, i) {
+          if (!cell.getAttribute('data-label') && heads[i]) cell.setAttribute('data-label', heads[i]);
+        });
+      });
+    });
+  }
+
+  function setupFormBusy() {
+    document.addEventListener('submit', function (event) {
+      var form = event.target;
+      if (!form || form.tagName !== 'FORM') return;
+      if (form.getAttribute('data-no-busy') === '1') return;
+      var method = ((form.querySelector('input[name="_method"]') || {}).value || form.method || 'get').toLowerCase();
+      if (method === 'get') return;
+      var btn = form.querySelector('button[type="submit"], input[type="submit"], .btn-save, .btn-submit');
+      if (btn) {
+        btn.classList.add('is-busy');
+        btn.disabled = true;
+      }
+    }, true);
+  }
 })();
