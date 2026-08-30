@@ -1,0 +1,11 @@
+.lp-editor-bar{position:fixed;top:0;left:0;right:0;z-index:4000;display:flex;gap:12px;align-items:center;height:52px;padding:0 16px;background:#111827;color:#fff;font:600 13px/1 system-ui}
+.lp-editor-bar a,.lp-editor-bar button{color:#fff;background:#374151;border:0;border-radius:8px;padding:7px 10px;text-decoration:none;cursor:pointer}
+.lp-editor-bar strong{flex:1}
+#lp-save-state{color:#86efac;font-size:12px}
+.lp-product-drawer{position:fixed;top:52px;right:0;z-index:4001;width:min(360px,100%);max-height:calc(100vh - 52px);overflow:auto;background:#fff;box-shadow:-8px 0 24px rgba(0,0,0,.12);padding:16px}
+.lp-product-drawer label{display:block;padding:6px 0;font-size:13px}
+[data-edit]{outline:1px dashed transparent;cursor:text;min-height:1em}
+body.lp-is-editor [data-edit]:hover{outline-color:#e11d48;background:rgba(225,29,72,.06)}
+body.lp-is-editor [data-edit].is-editing{outline:2px solid #e11d48}
+[data-lp-section]{position:relative}
+.lp-sec-handle{position:absolute;left:8px;top:8px;z-index:20;background:#111;color:#fff;border:0;border-radius:6px;padding:4px 8px;font-size:11px;cursor:grab}

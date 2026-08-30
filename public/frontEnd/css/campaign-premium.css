@@ -1,0 +1,77 @@
+/* Mohasagorit-style conversion landing */
+.ms-lp{font-family:"Noto Sans Bengali","Hind Siliguri",Tahoma,sans-serif;background:#fff;color:#222;line-height:1.55}
+.ms-wrap{width:min(860px,calc(100% - 20px));margin:0 auto}
+.ms-top{padding:18px 0 8px;text-align:center;background:#fff}
+.ms-logo{display:inline-block;margin-bottom:10px}
+.ms-logo img{max-height:70px;width:auto}
+.ms-title{margin:8px 0 12px;font-size:clamp(20px,3.4vw,30px);font-weight:800;color:#111;line-height:1.4}
+.ms-urgency{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:8px 0 4px}
+.ms-urgency span{background:#fef3c7;color:#92400e;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+.ms-bump .cpb-bump-check{display:flex;gap:10px;align-items:center;padding:10px;border:1px dashed #16a34a;border-radius:8px;background:#f0fdf4;cursor:pointer}
+.ms-hero{padding:0 0 8px}
+.ms-banner img,.ms-shot{display:block;width:100%;height:auto;margin:0 auto 8px}
+.ms-placeholder{min-height:180px;display:grid;place-items:center;background:#f3f4f6;color:#9ca3af}
+.ms-cta-row{text-align:center;padding:14px 0 18px}
+.ms-btn{display:inline-flex;align-items:center;justify-content:center;width:min(520px,100%);padding:14px 18px;border:0;border-radius:6px;background:#16a34a;color:#fff!important;text-decoration:none;font-size:20px;font-weight:800;cursor:pointer;box-shadow:0 2px 0 #15803d}
+.ms-btn:hover{background:#15803d;color:#fff}
+.ms-shots{padding-bottom:8px}
+.ms-call{text-align:center;padding:10px 0 22px}
+.ms-call p{margin:0 0 4px;font-size:18px;font-weight:700}
+.ms-call a{font-size:28px;font-weight:900;color:#16a34a;text-decoration:none}
+.ms-video{padding:8px 0 20px}
+.ms-video-box{position:relative;padding-top:56.25%;background:#000;overflow:hidden}
+.ms-video-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.ms-info{padding:8px 0 18px}
+.ms-info h2,.ms-reviews h2,.ms-products h2{text-align:center;font-size:22px;margin:0 0 14px;font-weight:800}
+.ms-info-body{font-size:16px}
+.ms-info-body ul{padding-left:18px}
+.ms-reviews{padding:8px 0 20px}
+.ms-review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ms-review-grid img,.ms-lp .cpb-live-review img{width:100%;height:auto;display:block}
+.ms-products{padding:10px 0 24px}
+.ms-product-list.cpb-live-products{display:grid;grid-template-columns:1fr;gap:12px}
+.ms-radio-card.cpb-live-product{display:grid;grid-template-columns:22px 120px 1fr;gap:12px;align-items:center;padding:12px;border:2px solid #e5e7eb;background:#fff;border-radius:8px;cursor:pointer}
+.ms-radio-card.is-selected{border-color:#16a34a;background:#f0fdf4;box-shadow:0 0 0 3px rgba(22,163,74,.15)}
+.ms-radio-input{position:absolute;opacity:0;pointer-events:none}
+.ms-radio-mark{width:20px;height:20px;border:2px solid #9ca3af;border-radius:50%;position:relative}
+.ms-radio-card.is-selected .ms-radio-mark{border-color:#16a34a}
+.ms-radio-card.is-selected .ms-radio-mark:after{content:"";position:absolute;inset:3px;border-radius:50%;background:#16a34a}
+.ms-offer{position:absolute;top:8px;left:8px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:4px}
+.ms-remove{display:inline-block;margin-top:6px;border:0;background:none;color:#dc2626;font-size:12px;cursor:pointer;text-decoration:underline}
+.ms-lp #cpb-store-loading{display:none!important}
+.ms-lp .cpb-live-product{display:grid;grid-template-columns:22px 120px 1fr;gap:12px;padding:12px;border:2px solid #e5e7eb;background:#fff}
+.ms-lp .cpb-live-product-image{margin:0;position:relative}
+.ms-lp .cpb-live-product-image img{width:100%;aspect-ratio:1;object-fit:cover}
+.ms-lp .cpb-zoom{display:none}
+.ms-lp .cpb-live-product-body h3{margin:0 0 6px;font-size:18px}
+.ms-lp .cpb-live-price strong{font-size:20px;color:#111}
+.ms-lp .cpb-live-price del{color:#9ca3af;margin-left:6px}
+.ms-lp .cpb-option-label{display:block;margin:8px 0 4px;font-size:13px;font-weight:700;color:#374151}
+.ms-lp .cpb-pills{display:flex;flex-wrap:wrap;gap:6px}
+.ms-lp .cpb-pill{border:1px solid #d1d5db;background:#fff;padding:6px 10px;border-radius:4px;font-size:13px;cursor:pointer}
+.ms-lp .cpb-pill.is-active{border-color:#16a34a;background:#dcfce7;color:#166534;font-weight:700}
+.ms-lp .cpb-pill.is-out{opacity:.4;text-decoration:line-through}
+.ms-lp .cpb-live-product-button{margin-top:10px;width:100%;padding:10px;border:0;border-radius:6px;background:#16a34a;color:#fff;font-weight:800;cursor:pointer}
+.ms-checkout{padding:8px 0 80px;background:#fafafa}
+.ms-lp .ms-checkout-cols,.ms-lp .cpb-checkout-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.ms-lp .cpb-customer-form,.ms-lp .cpb-order-summary{background:#fff;border:1px solid #e5e7eb;padding:16px}
+.ms-lp .cpb-checkout-card-head{margin-bottom:12px;font-size:18px}
+.ms-lp .cpb-form-field{margin-bottom:12px}
+.ms-lp .cpb-form-field input,.ms-lp .cpb-form-field textarea{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:4px;font:inherit}
+.ms-lp .cpb-zone-cards{display:grid;gap:8px}
+.ms-lp .cpb-zone-card{display:flex;gap:8px;align-items:center;border:1px solid #d1d5db;padding:10px;border-radius:4px}
+.ms-lp .cpb-zone-card.is-checked{border-color:#16a34a;background:#f0fdf4}
+.ms-lp .cart_table{width:100%;border-collapse:collapse}
+.ms-lp .cart_table td,.ms-lp .cart_table th{padding:8px 0;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+.ms-lp .quantity{display:inline-flex;align-items:center;gap:4px;margin-bottom:4px}
+.ms-lp .quantity button{width:28px;height:28px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
+.ms-lp .quantity input{width:36px;text-align:center;border:1px solid #d1d5db;height:28px}
+.ms-lp .cpb-place-order{width:100%;margin-top:12px}
+.ms-lp #cpb-sticky-order{background:#16a34a}
+@media(max-width:760px){
+  .ms-lp .cpb-live-product{grid-template-columns:1fr}
+  .ms-lp .ms-checkout-cols,.ms-lp .cpb-checkout-columns{grid-template-columns:1fr}
+  .ms-review-grid{grid-template-columns:repeat(2,1fr)}
+  .ms-btn{font-size:17px}
+}
+body.lp-is-editor{padding-top:52px}

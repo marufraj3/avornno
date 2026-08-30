@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-dashboard text-gray-800 font-sans antialiased;
+    }
+}
+
+@layer components {
+    .card {
+        @apply bg-dashboard-card-bg rounded-xl border border-dashboard-border shadow-card p-4 md:p-5 transition-shadow duration-200 hover:shadow-card-hover;
+    }
+
+    .card-interactive {
+        @apply card cursor-pointer;
+    }
+
+    .card-header-label {
+        @apply text-card-heading font-semibold text-dashboard-text-primary mb-1;
+    }
+
+    .card-value {
+        @apply text-card-value font-bold text-dashboard-text-primary;
+    }
+
+    .card-subtitle {
+        @apply text-card-subtitle text-dashboard-text-muted mt-0.5;
+    }
+
+    .status-pill {
+        @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    }
+
+    .btn-primary {
+        @apply inline-flex items-center justify-center px-4 py-2.5 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors duration-150;
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center px-4 py-2.5 bg-white text-gray-700 border border-dashboard-border rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors duration-150;
+    }
+
+    .section-title {
+        @apply text-lg font-bold text-dashboard-text-primary flex items-center gap-2 mt-2 mb-4;
+    }
+}

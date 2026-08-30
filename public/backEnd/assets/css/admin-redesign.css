@@ -1,0 +1,288 @@
+/* ============================================================
+   ADMIN PANEL REDESIGN — Avornno
+   Modern, clean & organized admin UI (sidebar, topbar, content)
+   Loaded after custom.css — overrides theme defaults only.
+   ============================================================ */
+
+:root {
+  --ar-primary: #4f46e5;
+  --ar-primary-soft: #eef2ff;
+  --ar-primary-grad: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --ar-text: #344054;
+  --ar-text-muted: #98a2b3;
+  --ar-hover: #f4f6fb;
+  --ar-border: #eaecf0;
+  --ar-bg: #f6f8fb;
+  --ar-radius: 10px;
+}
+
+/* ---------------- Content area ---------------- */
+.content-page {
+  background: var(--ar-bg);
+  min-height: 100vh;
+}
+
+/* ---------------- Topbar ---------------- */
+.navbar-custom {
+  background: linear-gradient(90deg, #1e2337 0%, #2a2f4a 100%) !important;
+  box-shadow: 0 2px 12px rgba(16, 24, 40, 0.15);
+}
+.navbar-custom .topnav-menu .nav-link {
+  color: #cbd2e0;
+}
+.navbar-custom .topnav-menu .nav-link:hover {
+  color: #ffffff;
+}
+.noti-icon-badge {
+  font-size: 10px;
+  min-width: 17px;
+  height: 17px;
+  line-height: 13px;
+}
+
+/* ---------------- Sidebar shell ---------------- */
+.left-side-menu {
+  background: #ffffff;
+  box-shadow: 1px 0 0 var(--ar-border), 0 0 24px rgba(15, 34, 58, 0.04);
+  padding-bottom: 24px;
+}
+
+/* Sidebar search */
+.sidebar-search {
+  padding: 14px 14px 6px;
+}
+.sidebar-search .search-wrap {
+  position: relative;
+}
+.sidebar-search input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--ar-border);
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 0 12px 0 34px;
+  font-size: 13px;
+  color: var(--ar-text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.sidebar-search input:focus {
+  border-color: var(--ar-primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+.sidebar-search .search-wrap > i {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ar-text-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+.sidebar-search .no-result {
+  display: none;
+  font-size: 12px;
+  color: var(--ar-text-muted);
+  padding: 8px 4px 0;
+}
+
+/* ---------------- Section titles ---------------- */
+#sidebar-menu .menu-title {
+  padding: 16px 22px 5px !important;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ar-text-muted) !important;
+  background: transparent;
+}
+
+/* ---------------- Top-level items ---------------- */
+#sidebar-menu > ul > li > a {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  margin: 1px 10px;
+  padding: 8px 12px !important;
+  border-radius: 8px;
+  color: var(--ar-text) !important;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+#sidebar-menu > ul > li > a:hover {
+  background: var(--ar-hover);
+  color: var(--ar-primary) !important;
+}
+#sidebar-menu > ul > li > a svg,
+#sidebar-menu > ul > li > a i[data-feather] {
+  width: 17px;
+  height: 17px;
+  min-width: 17px;
+  color: inherit;
+  stroke-width: 2;
+  margin: 0 !important;
+}
+#sidebar-menu > ul > li > a span {
+  flex: 1 1 auto;
+}
+#sidebar-menu .menu-arrow {
+  position: static !important;
+  margin-left: auto;
+  transform: none;
+  line-height: 1;
+}
+#sidebar-menu > ul > li > a[aria-expanded="true"] .menu-arrow,
+#sidebar-menu > ul > li > a:not(.collapsed)[data-bs-toggle="collapse"] .menu-arrow {
+  transform: rotate(90deg);
+}
+
+/* Active top-level item */
+#sidebar-menu > ul > li.menuitem-active > a {
+  background: var(--ar-primary-grad) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
+}
+#sidebar-menu > ul > li.menuitem-active > a svg {
+  color: #fff;
+}
+
+/* ---------------- Submenus ---------------- */
+#sidebar-menu .nav-second-level {
+  padding: 3px 0 5px;
+}
+#sidebar-menu .nav-second-level li a {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin: 1px 10px 1px 24px;
+  padding: 6px 10px !important;
+  border-radius: 7px;
+  font-size: 13px;
+  color: #667085 !important;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+#sidebar-menu .nav-second-level li a:hover {
+  background: var(--ar-hover);
+  color: var(--ar-primary) !important;
+}
+#sidebar-menu .nav-second-level li a svg,
+#sidebar-menu .nav-second-level li a i[data-feather] {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  stroke-width: 2;
+  opacity: 0.75;
+}
+#sidebar-menu .nav-second-level li.active > a,
+#sidebar-menu .nav-second-level li a.active {
+  background: var(--ar-primary-soft);
+  color: var(--ar-primary) !important;
+  font-weight: 600;
+}
+#sidebar-menu .nav-second-level .dropdown-divider {
+  margin: 6px 18px 6px 30px;
+  border-color: var(--ar-border);
+}
+
+/* Sidebar badges */
+#sidebar-menu .badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+#sidebar-menu .badge-ai {
+  background: linear-gradient(135deg, #f43f5e, #8b5cf6);
+  color: #fff;
+}
+
+/* Sidebar scrollbar */
+.left-side-menu .simplebar-scrollbar:before {
+  background: #cbd2e0;
+}
+
+/* ---------------- Cards & content polish ---------------- */
+.card {
+  border: 0;
+  border-radius: var(--ar-radius);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.card .card-header {
+  background: #fff;
+  border-bottom: 1px solid var(--ar-border);
+  border-radius: var(--ar-radius) var(--ar-radius) 0 0 !important;
+}
+.page-title-box .page-title {
+  font-weight: 700;
+  color: #1d2939;
+}
+
+/* Tables */
+.table thead th {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #667085;
+  background: #f9fafb;
+  border-bottom: 1px solid var(--ar-border) !important;
+  white-space: nowrap;
+}
+.table-hover tbody tr:hover {
+  background-color: #f8faff;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+.btn-primary {
+  background: var(--ar-primary);
+  border-color: var(--ar-primary);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background: #4338ca;
+  border-color: #4338ca;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+  border-radius: 8px;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ar-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Pagination */
+.page-item.active .page-link {
+  background: var(--ar-primary);
+  border-color: var(--ar-primary);
+}
+.page-link {
+  color: var(--ar-primary);
+}
+
+/* Search-filter hidden state (sidebar menu search) */
+#side-menu li.ar-search-hidden {
+  display: none !important;
+}
+
+/* Condensed-mode safety: keep default behavior on small sidebar */
+body[data-sidebar-size="condensed"] .sidebar-search {
+  display: none;
+}
+
+/* Responsive tweak */
+@media (max-width: 767px) {
+  #sidebar-menu > ul > li > a {
+    margin: 1px 6px;
+  }
+}
