@@ -216,7 +216,7 @@
       }
 
       var directLink = event.target.closest('#side-menu a[href]:not([data-sidebar-toggle])');
-      if (directLink && window.innerWidth <= 991) {
+      if (directLink && window.innerWidth <= 767) {
         closeSidebar();
       }
     }, true);
